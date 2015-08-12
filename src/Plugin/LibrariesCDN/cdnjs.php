@@ -48,18 +48,26 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
   public function getVersions() {
     $data = $this->request($this->getURL(__FUNCTION__));
 
+    if (!$this->isAvailable()) {
+      return array();
+    }
+
     $results = array();
-    foreach ((array) $data['assets'] as $asset) {
+    foreach ((array) $data['results'][0]['assets'] as $asset) {
       $results[] = $asset['version'];
     }
     return $results;
   }
 
   public function getFiles(array $versions = array()) {
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->request($this->getURL(__FUNCTION__)) + array('assets' => array());
+
+    if (!$this->isAvailable()) {
+      return array();
+    }
 
     $results = array();
-    foreach ((array) $data['assets'] as $asset) {
+    foreach ((array) $data['results'][0]['assets'] as $asset) {
       $results[$asset['version']] = $this->convertFiles($asset['files'], $asset['version']);
     }
 
@@ -76,6 +84,11 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
 
   public function getInformation() {
     $data = $this->request($this->getURL(__FUNCTION__));
+
+    if (!$this->isAvailable()) {
+      return array();
+    }
+
     return $data['results'][0];
   }
 

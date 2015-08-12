@@ -41,7 +41,7 @@ class LibrariesCDN extends \Drupal {
   public static function setPlugin($plugin, $library = NULL) {
     $plugin = self::service('libraries_cdn.LibrariesCDN')->createInstance($plugin);
     if ($library) {
-      self::$plugin->setLibrary($library);
+      $plugin->setLibrary($library);
     }
     self::$plugin = $plugin;
   }
@@ -144,6 +144,42 @@ class LibrariesCDN extends \Drupal {
    */
   public static function getLatestVersion() {
     return self::$plugin->getLatestVersion();
+  }
+
+  /**
+   * Generate an array for the variants of the Libraries API module.
+   *
+   * @param array $options
+   *   Array to apply to each file.
+   * @return array
+   *   The returned array can be applied to the 'variants' key in the library
+   *   definition in hook_libraries_info().
+   */
+  public static function getLibrariesVariants(array $options = array()) {
+    $variants = array();
+    $module_path = drupal_get_path('module', 'libraries_cdn');
+    $information = self::getInformation();
+
+    $name = isset($information['name']) ? $information['name'] : self::getLibrary();
+
+    foreach (self::getFiles() as $version => $files) {
+      $variant = self::$plugin->getPluginId() . ':' . $version;
+      foreach($files as $file) {
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+
+        if (strpos($file, 'debug') !== FALSE || strpos($file, 'min') !== FALSE) {
+          continue;
+        }
+
+        $variants[$variant]['name'] = sprintf("%s %s", $name, $version);
+        $variants[$variant]['library path'] = $module_path;
+        $variants[$variant]['files'][$ext][$file] = array(
+          'type' => 'external',
+          'data' => $file,
+        ) + $options;
+      };
+    }
+    return $variants;
   }
 
 }

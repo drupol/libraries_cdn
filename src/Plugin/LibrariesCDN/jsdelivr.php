@@ -46,11 +46,20 @@ class jsDelivr extends CDNBase {
 
   public function getVersions() {
     $data = $this->request($this->getURL(__FUNCTION__));
+
+    if (!$this->isAvailable()) {
+      return array();
+    }
+
     return $data[0]['versions'];
   }
 
   public function getFiles(array $versions = array()) {
     $data = $this->request($this->getURL(__FUNCTION__));
+
+    if (!$this->isAvailable()) {
+      return array();
+    }
 
     $results = array();
     foreach ((array) $data[0]['assets'] as $asset) {
