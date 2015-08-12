@@ -34,7 +34,7 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
       'getInformation' => 'http://api.cdnjs.com/libraries?search=%s&fields=version,description,homepage,keyword,maintainers',
       'getVersions' => 'http://api.cdnjs.com/libraries?search=%s&fields=assets',
       'getFiles' => 'http://api.cdnjs.com/libraries?search=%s&fields=assets',
-      'convertFiles' => 'http://cdnjs.cloudflare.com/ajax/libs/%s/%s/',
+      'convertFiles' => '//cdnjs.cloudflare.com/ajax/libs/%s/%s/',
     );
 
     parent::__construct($configuration, $plugin_id, $plugin_definition);

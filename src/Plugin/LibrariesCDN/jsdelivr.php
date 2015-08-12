@@ -33,7 +33,7 @@ class jsDelivr extends CDNBase {
       'getInformation' => 'http://api.jsdelivr.com/v1/jsdelivr/libraries?name=%s&fields=name,mainfile,lastversion,description,homepage,github,author',
       'getVersions' => 'http://api.jsdelivr.com/v1/jsdelivr/libraries?name=%s&fields=versions',
       'getFiles' => 'http://api.jsdelivr.com/v1/jsdelivr/libraries?name=%s&fields=assets',
-      'convertFiles' => 'http://cdn.jsdelivr.net/%s/%s/',
+      'convertFiles' => '//cdn.jsdelivr.net/%s/%s/',
     );
 
     parent::__construct($configuration, $plugin_id, $plugin_definition);
