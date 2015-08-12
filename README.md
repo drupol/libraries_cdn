@@ -61,6 +61,7 @@ function mymodule_libraries_info() {
 ```
 
 The explanation of this new key:
+- plugins: array, the list of cdn plugins to search the library from. Will use all if not set.
 - aliases: array, if the library has different names.
 - options: array, this array will be applied to each file definition, see ```drupal_add_TYPE()``` (js or css) to see which are the keys.
 
