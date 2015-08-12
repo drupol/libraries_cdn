@@ -37,6 +37,7 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
       'getInformation' => 'http://api.cdnjs.com/libraries?search=%s&fields=version,description,homepage,keyword,maintainers',
       'getVersions' => 'http://api.cdnjs.com/libraries?search=%s&fields=assets',
       'getFiles' => 'http://api.cdnjs.com/libraries?search=%s&fields=assets',
+      'search' => 'http://api.cdnjs.com/libraries?search=%s',
       'convertFiles' => '//cdnjs.cloudflare.com/ajax/libs/%s/%s/',
     );
 
@@ -136,12 +137,17 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
     $this->setLibrary($library);
     $this->available = NULL;
 
-    // Looks like it's impossible to do a search with the API on CDNJS.
-    $result = array();
-    if ($this->isAvailable()) {
-      $result[] = $this->getLibrary();
+    if (!$this->isAvailable()) {
+      return array();
     }
-    return $result;
+
+    $data = $this->request($this->getURL(__FUNCTION__));
+
+    $results = array();
+    foreach ($data['results'] as $library) {
+      $results[] = $library['name'];
+    }
+    return $results;
   }
 
 }
