@@ -19,6 +19,11 @@ use Drupal\libraries_cdn\Types\CDNBase;
  * )
  */
 class jsDelivr extends CDNBase {
+  /**
+   * This flag is set to true when the library is available.
+   */
+  protected $available;
+
   public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
     if (empty($configuration['urls'])) {
       $configuration['urls'] = array();
@@ -35,11 +40,17 @@ class jsDelivr extends CDNBase {
   }
 
   public function isAvailable() {
+    if (isset($this->available)) {
+      return $this->available;
+    }
+
     $data = $this->request($this->getURL(__FUNCTION__));
 
     if (isset($data[0])) {
+      $this->available = TRUE;
       return TRUE;
     } else {
+      $this->available = FALSE;
       return FALSE;
     }
   }

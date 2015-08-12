@@ -20,6 +20,11 @@ use Drupal\libraries_cdn\Types\CDNBaseInterface;
  * )
  */
 class CDNJS extends CDNBase implements CDNBaseInterface {
+  /**
+   * This flag is set to true when the library is available.
+   */
+  protected $available;
+
   public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
     if (empty($configuration['urls'])) {
       $configuration['urls'] = array();
@@ -36,11 +41,17 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
   }
 
   public function isAvailable() {
+    if (isset($this->available)) {
+      return $this->available;
+    }
+
     $data = $this->request($this->getURL(__FUNCTION__));
 
     if ($data['total'] !== 0) {
+      $this->available = TRUE;
       return TRUE;
     } else {
+      $this->available = FALSE;
       return FALSE;
     }
   }
