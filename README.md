@@ -29,6 +29,42 @@ Libraries CDN API is an API module to retrieve data from CDN like CDNJS or jsDel
   \Drupal\libraries_cdn\LibrariesCDN::getLatestVersion();
 ```
 
+# Integration with Libraries API
+
+This module provides a kind of autodiscovery for Libraries API through the ```hook_libraries_info_alter()```.
+In order to have it working, add a new key to the library definition in ```hook_libraries_info()```.
+
+Here's an example:
+
+```
+/*
+ * Implementation of hook_libraries_info().
+ */
+function mymodule_libraries_info() {
+  return array(
+    'mylibrary' => array(
+      'name' => 'MyLibrary library',
+      'library path' => drupal_get_path('module', 'mymodule'),
+      'version callback' => , // Set a callback here to get the version in use.
+      'version arguments' => array(),
+      'variants' => array(),
+      'cdn' => array(
+        'aliases' => array('mlib', 'mylib'),
+        'options' => array(
+          'weight' => -2,
+          'group' => 'MyLib',
+        ),
+      )
+    )
+  );
+}
+```
+
+The explanation of this new key:
+- aliases: array, if the library has different names.
+- options: array, this array will be applied to each file definition, see ```drupal_add_TYPE()``` (js or css) to see which are the keys.
+
+
 # Extend the module
 
 Create a simple drupal module.
@@ -56,3 +92,4 @@ Have a look at the files provided in the original module to inspire yours.
 * More CDNs.
 * More documentation.
 * Better ```Libraries API``` integration.
+* Permit the download and installation of libraries
