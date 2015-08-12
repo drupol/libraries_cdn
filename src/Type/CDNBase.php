@@ -12,6 +12,11 @@ use Drupal\Component\Plugin\PluginBase;
  */
 abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   /**
+   * This flag is set to true when the library is available.
+   */
+  protected $available;
+
+  /**
    * {@inheritdoc}
    */
   public function setConfiguration(array $configuration = array()) {
@@ -88,4 +93,40 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   public function getLatestVersion() {
     return FALSE;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function search($library) {
+    return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isAvailable() {
+    return $this->available;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getVersions() {
+    return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFiles(array $version = array()) {
+    return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getInformation() {
+    return array();
+  }
+
 }

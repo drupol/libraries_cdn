@@ -28,6 +28,11 @@ Libraries CDN API is an API module to retrieve data from CDN like CDNJS or jsDel
   // Get latest version available
   \Drupal\libraries_cdn\LibrariesCDN::getLatestVersion();
 ```
+  // Get array of CDN plugins ID where the library is available
+  \Drupal\libraries_cdn\LibrariesCDN::find($library);
+
+  // Perform a search on each CDN Plugins and return an array of results
+  \Drupal\libraries_cdn\LibrariesCDN::search($library);
 
 # Integration with Libraries API
 

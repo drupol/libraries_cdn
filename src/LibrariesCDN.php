@@ -33,12 +33,54 @@ class LibrariesCDN extends \Drupal {
   }
 
   /**
+   * Return CDN Plugin id's of the CDN who provides a library.
+   *
+   * @param string $library
+   *   The library to search.
+   *
+   * @return array $providers
+   *   The array of providers who provides the searched library.
+   */
+  public static function find($library) {
+    $providers = array();
+    foreach(self::getAvailableCDN() as $cdn) {
+      self::setPlugin($cdn, $library);
+      if (self::isAvailable()) {
+        $providers[] = $cdn;
+      }
+    }
+    return $providers;
+  }
+
+  /**
+   * Return CDN Plugin id's of the CDN who provides a library.
+   *
+   * @param string $library
+   *   The library to search.
+   *
+   * @return array $providers
+   *   The array of providers who provides the searched library.
+   */
+  public static function search($library) {
+    $providers = array();
+    foreach(self::getAvailableCDN() as $cdn) {
+      self::setPlugin($cdn);
+      $search = self::$plugin->search($library);
+      if (!empty($search)) {
+        $providers[$cdn] = $search;
+      }
+    }
+    return $providers;
+  }
+
+  /**
    * Set the CDN plugin to use.
    *
    * @param $plugin
    * @param null $library
    */
   public static function setPlugin($plugin, $library = NULL) {
+    /* @var CDNBaseInterface $plugin */
     $plugin = self::service('libraries_cdn.LibrariesCDN')->createInstance($plugin);
     if ($library) {
       $plugin->setLibrary($library);
@@ -47,9 +89,19 @@ class LibrariesCDN extends \Drupal {
   }
 
   /**
+   * Return the CDN Plugin object.
+   *
+   * @return \Drupal\libraries_cdn\Types\CDNBaseInterface
+   *   The CDN Plugin object.
+   */
+  public static function getPlugin() {
+    return self::$plugin;
+  }
+
+  /**
    * Set the library to work with.
    *
-   * @param $library
+   * @param string $library
    */
   public static function setLibrary($library) {
     self::$plugin->setLibrary($library);
@@ -94,8 +146,8 @@ class LibrariesCDN extends \Drupal {
   /**
    * Set a particular URL.
    *
-   * @param $identifier
-   * @param $url
+   * @param string $identifier
+   * @param string $url
    */
   public static function setURL($identifier, $url) {
     self::$plugin->setURL($identifier, $url);

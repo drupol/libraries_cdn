@@ -92,4 +92,11 @@ interface CDNBaseInterface extends PluginInspectionInterface {
    * @return string
    */
   public function getLatestVersion();
+
+  /**
+   * Perform a search for a library.
+   *
+   * @return string
+   */
+  public function search($library);
 }

@@ -25,6 +25,9 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
    */
   protected $available;
 
+  /**
+   * {@inheritdoc}
+   */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
     if (empty($configuration['urls'])) {
       $configuration['urls'] = array();
@@ -40,6 +43,9 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function isAvailable() {
     if (isset($this->available)) {
       return $this->available;
@@ -56,6 +62,9 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
     }
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getVersions() {
     $data = $this->request($this->getURL(__FUNCTION__));
 
@@ -70,6 +79,9 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
     return $results;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getFiles(array $versions = array()) {
     $data = $this->request($this->getURL(__FUNCTION__)) + array('assets' => array());
 
@@ -85,6 +97,9 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
     return empty($versions) ? $results : array_intersect_key($results, array_combine(array_values($versions), array_values($versions)));
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function convertFiles(array $files = array(), $version) {
     $results = array();
     foreach ($files as $file) {
@@ -93,6 +108,9 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
     return $results;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getInformation() {
     $data = $this->request($this->getURL(__FUNCTION__));
 
@@ -103,8 +121,27 @@ class CDNJS extends CDNBase implements CDNBaseInterface {
     return $data['results'][0];
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getLatestVersion() {
     $information = $this->getInformation();
     return $information['version'];
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function search($library) {
+    $this->setLibrary($library);
+    $this->available = NULL;
+
+    // Looks like it's impossible to do a search with the API on CDNJS.
+    $result = array();
+    if ($this->isAvailable()) {
+      $result[] = $this->getLibrary();
+    }
+    return $result;
+  }
+
 }

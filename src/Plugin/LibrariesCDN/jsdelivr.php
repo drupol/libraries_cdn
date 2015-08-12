@@ -24,6 +24,9 @@ class jsDelivr extends CDNBase {
    */
   protected $available;
 
+  /**
+   * {@inheritdoc}
+   */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
     if (empty($configuration['urls'])) {
       $configuration['urls'] = array();
@@ -33,12 +36,16 @@ class jsDelivr extends CDNBase {
       'getInformation' => 'http://api.jsdelivr.com/v1/jsdelivr/libraries?name=%s&fields=name,mainfile,lastversion,description,homepage,github,author',
       'getVersions' => 'http://api.jsdelivr.com/v1/jsdelivr/libraries?name=%s&fields=versions',
       'getFiles' => 'http://api.jsdelivr.com/v1/jsdelivr/libraries?name=%s&fields=assets',
+      'search' => 'http://api.jsdelivr.com/v1/jsdelivr/libraries?name=*%s*',
       'convertFiles' => '//cdn.jsdelivr.net/%s/%s/',
     );
 
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function isAvailable() {
     if (isset($this->available)) {
       return $this->available;
@@ -55,6 +62,9 @@ class jsDelivr extends CDNBase {
     }
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getVersions() {
     $data = $this->request($this->getURL(__FUNCTION__));
 
@@ -65,6 +75,9 @@ class jsDelivr extends CDNBase {
     return $data[0]['versions'];
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getFiles(array $versions = array()) {
     $data = $this->request($this->getURL(__FUNCTION__));
 
@@ -80,6 +93,9 @@ class jsDelivr extends CDNBase {
     return empty($versions) ? $results : array_intersect_key($results, array_combine(array_values($versions), array_values($versions)));
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function convertFiles(array $files = array(), $version) {
     $results = array();
     foreach ($files as $file) {
@@ -88,6 +104,9 @@ class jsDelivr extends CDNBase {
     return $results;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getLatestVersion() {
     $information = $this->getInformation();
 
@@ -97,6 +116,9 @@ class jsDelivr extends CDNBase {
     return FALSE;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getInformation() {
     $data = $this->request($this->getURL(__FUNCTION__));
 
@@ -104,6 +126,26 @@ class jsDelivr extends CDNBase {
       return $data[0];
     }
     return FALSE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function search($library) {
+    $this->setLibrary($library);
+    $this->available = NULL;
+
+    if (!$this->isAvailable()) {
+      return array();
+    }
+
+    $data = $this->request($this->getURL(__FUNCTION__));
+
+    $results = array();
+    foreach ($data as $library) {
+      $results[] = $library['name'];
+    }
+    return $results;
   }
 
 }
