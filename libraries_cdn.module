@@ -61,3 +61,73 @@ function libraries_cdn_libraries_info_alter(&$info) {
   }
   $library['cdn']['processed'] = TRUE;
 }
+
+/**
+ * Function to add a library to a page. This is under heavy development.
+ *
+ * @param string $library
+ *   The library name.
+ * @param mixed $cdns
+ *   The cdn name or an array of CDN name.
+ * @param null $version
+ *   The version of the library. If not set it will detect the latest.
+ */
+function libraries_cdn_add($library, $cdns = array(), $version = NULL) {
+  if (is_string($cdns)) {
+    $cdns = (array) $cdns;
+  }
+
+  if (empty($cdns)) {
+    $cdns = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
+  }
+
+  $found = FALSE;
+
+  foreach ($cdns as $cdn) {
+    if ($found == TRUE) {
+      continue;
+    }
+    if (\Drupal\libraries_cdn\LibrariesCDN::isAvailableCDN($cdn)) {
+      \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library);
+      if (\Drupal\libraries_cdn\LibrariesCDN::isAvailable()) {
+
+        $user_version = $version ? $version : \Drupal\libraries_cdn\LibrariesCDN::getLatestVersion();
+
+        if ($cache = cache_get($library . ':' . $cdn . ':' . $user_version)) {
+          $results = $cache->data;
+        } else {
+          $files = \Drupal\libraries_cdn\LibrariesCDN::getFiles();
+
+          if (isset($files[$user_version])) {
+            foreach ((array) $files[$user_version] as $file) {
+              $ext = pathinfo($file, PATHINFO_EXTENSION);
+
+              if (strpos($file, 'debug') !== FALSE || strpos($file, 'min') !== FALSE) {
+                continue;
+              }
+
+              $results[$ext][] = $file;
+              $found = TRUE;
+            };
+            $cache_id = $library . ':' . $cdn . ':' . $user_version;
+            cache_set($cache_id, $results);
+          }
+        }
+
+      }
+    }
+  }
+
+  if (!empty($results)) {
+    foreach ($results as $type => $files) {
+      foreach ($files as $file) {
+        if ($type == 'js') {
+          drupal_add_js($file);
+        }
+        if ($type == 'css') {
+          drupal_add_css($file);
+        }
+      }
+    }
+  }
+}

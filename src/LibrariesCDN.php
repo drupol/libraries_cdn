@@ -16,6 +16,16 @@ class LibrariesCDN extends \Drupal {
   protected static $plugin;
 
   /**
+   * Check if a CDN plugin is available.
+   *
+   * @return bool
+   *   TRUE if the plugin is available, otherwise, FALSE.
+   */
+  public static function isAvailableCDN($plugin_id) {
+    return in_array($plugin_id, self::getAvailableCDN());
+  }
+
+  /**
    * Gets a list of available CDN plugins.
    *
    * @return array

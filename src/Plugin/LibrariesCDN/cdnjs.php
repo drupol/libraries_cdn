@@ -34,9 +34,9 @@ class CDNJS extends CDNBase {
     }
     $configuration['urls'] += array(
       'isAvailable' => 'http://api.cdnjs.com/libraries?search=%s',
-      'getInformation' => 'http://api.cdnjs.com/libraries?search=%s&fields=version,description,homepage,keyword,maintainers',
+      'getInformation' => 'http://api.cdnjs.com/libraries/%s',
       'getVersions' => 'http://api.cdnjs.com/libraries?search=%s&fields=assets',
-      'getFiles' => 'http://api.cdnjs.com/libraries?search=%s&fields=assets',
+      'getFiles' => 'http://api.cdnjs.com/libraries/%s',
       'search' => 'http://api.cdnjs.com/libraries?search=%s',
       'convertFiles' => '//cdnjs.cloudflare.com/ajax/libs/%s/%s/',
     );
@@ -92,7 +92,7 @@ class CDNJS extends CDNBase {
     }
 
     $results = array();
-    foreach ((array) $data['results'][0]['assets'] as $asset) {
+    foreach ((array) $data['assets'] as $asset) {
       $results[$asset['version']] = $this->convertFiles($asset['files'], $asset['version']);
     }
 
@@ -109,7 +109,7 @@ class CDNJS extends CDNBase {
       return array();
     }
 
-    return $data['results'][0];
+    return $data;
   }
 
   /**
