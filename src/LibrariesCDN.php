@@ -43,7 +43,7 @@ class LibrariesCDN extends \Drupal {
    */
   public static function find($library) {
     $providers = array();
-    foreach(self::getAvailableCDN() as $cdn) {
+    foreach (self::getAvailableCDN() as $cdn) {
       self::setPlugin($cdn, $library);
       if (self::isAvailable()) {
         $providers[] = $cdn;
@@ -63,7 +63,7 @@ class LibrariesCDN extends \Drupal {
    */
   public static function search($library) {
     $providers = array();
-    foreach(self::getAvailableCDN() as $cdn) {
+    foreach (self::getAvailableCDN() as $cdn) {
       self::setPlugin($cdn);
       $search = self::$plugin->search($library);
       if (!empty($search)) {
@@ -138,6 +138,7 @@ class LibrariesCDN extends \Drupal {
    * Get the library in use.
    *
    * @return string
+   *   The library name.
    */
   public static function getLibrary() {
     return self::$plugin->getLibrary();
@@ -157,6 +158,7 @@ class LibrariesCDN extends \Drupal {
    * Get a particular URL.
    *
    * @return string
+   *   The URL.
    */
   public static function getURL($identifier) {
     return self::$plugin->getURL($identifier);
@@ -166,6 +168,7 @@ class LibrariesCDN extends \Drupal {
    * Set URLs.
    *
    * @param array $urls
+   *   An array of URLs for querying the service.
    */
   public static function setURLs(array $urls) {
     self::$plugin->setURLs($urls);
@@ -175,6 +178,7 @@ class LibrariesCDN extends \Drupal {
    * Get URLs.
    *
    * @return array
+   *   Return an array of URLs in use for querying the service.
    */
   public static function getURLs() {
     return self::$plugin->getURLs();
@@ -184,6 +188,7 @@ class LibrariesCDN extends \Drupal {
    * Get library information.
    *
    * @return array
+   *   Return an array containing information about the library.
    */
   public static function getInformation() {
     return self::$plugin->getInformation();
@@ -193,6 +198,7 @@ class LibrariesCDN extends \Drupal {
    * Get latest version available of a library.
    *
    * @return string
+   *   The latest available version of the library.
    */
   public static function getLatestVersion() {
     return self::$plugin->getLatestVersion();
@@ -203,6 +209,7 @@ class LibrariesCDN extends \Drupal {
    *
    * @param array $options
    *   Array to apply to each file.
+   *
    * @return array
    *   The returned array can be applied to the 'variants' key in the library
    *   definition in hook_libraries_info().
@@ -216,7 +223,7 @@ class LibrariesCDN extends \Drupal {
 
     foreach (self::getFiles() as $version => $files) {
       $variant = self::$plugin->getPluginId() . ':' . $version;
-      foreach($files as $file) {
+      foreach ($files as $file) {
         $ext = pathinfo($file, PATHINFO_EXTENSION);
 
         if (strpos($file, 'debug') !== FALSE || strpos($file, 'min') !== FALSE) {

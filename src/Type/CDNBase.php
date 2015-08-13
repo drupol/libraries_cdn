@@ -1,14 +1,14 @@
 <?php
 /**
  * @file
- * Class Component.
+ * Class CDNBase.
  */
 
 namespace Drupal\libraries_cdn\Types;
 use Drupal\Component\Plugin\PluginBase;
 
 /**
- * Class Component.
+ * Class CDNBase.
  */
 abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   /**
@@ -80,7 +80,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function request($url, array $options = array()) {
-    $request = drupal_http_request(sprintf($url, $this->getLibrary()));
+    $request = drupal_http_request(sprintf($url, $this->getLibrary()), $options);
     if ($request->code != 200) {
       return FALSE;
     }
@@ -127,6 +127,17 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    */
   public function getInformation() {
     return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function convertFiles(array $files, $version) {
+    $results = array();
+    foreach ($files as $file) {
+      $results[] = sprintf($this->getURL(__FUNCTION__), $this->getLibrary(), $version) . $file;
+    }
+    return $results;
   }
 
 }

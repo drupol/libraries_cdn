@@ -11,14 +11,14 @@ use Drupal\libraries_cdn\Component\Annotation\LibrariesCDNPlugin;
 use Drupal\libraries_cdn\Types\CDNBase;
 
 /**
- * Class jsDelivr.
+ * Class JSDelivr.
  *
  * @LibrariesCDNPlugin(
  *  id = "jsdelivr",
  *  description = "jsDelivr Integration"
  * )
  */
-class jsDelivr extends CDNBase {
+class JSDelivr extends CDNBase {
   /**
    * This flag is set to true when the library is available.
    */
@@ -56,7 +56,8 @@ class jsDelivr extends CDNBase {
     if (isset($data[0])) {
       $this->available = TRUE;
       return TRUE;
-    } else {
+    }
+    else {
       $this->available = FALSE;
       return FALSE;
     }
@@ -96,17 +97,6 @@ class jsDelivr extends CDNBase {
   /**
    * {@inheritdoc}
    */
-  public function convertFiles(array $files = array(), $version) {
-    $results = array();
-    foreach ($files as $file) {
-      $results[] = sprintf($this->getURL(__FUNCTION__), $this->getLibrary(), $version) . $file;
-    }
-    return $results;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getLatestVersion() {
     $information = $this->getInformation();
 
@@ -133,7 +123,6 @@ class jsDelivr extends CDNBase {
    */
   public function search($library) {
     $this->setLibrary($library);
-    $this->available = NULL;
 
     if (!$this->isAvailable()) {
       return array();
