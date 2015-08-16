@@ -124,4 +124,49 @@ interface CDNBaseInterface extends PluginInspectionInterface {
    */
   public function search($library);
 
+  /**
+   * Check if a file is available locally.
+   *
+   * @param string $file
+   *   The file to check.
+   * @param string $version
+   *   The version to check the file against.
+   *
+   * @return bool
+   *   Return TRUE if the file is available, FALSE otherwise.
+   */
+  public function isLocalAvailable($file, $version);
+
+  /**
+   * Get the local file name of a library file.
+   *
+   * @param string $file
+   *   The file to check.
+   * @param string $version
+   *   The version to check the file against.
+   *
+   * @return string
+   *   Return the file name.
+   */
+  public function getLocalFileName($file, $version);
+
+  /**
+   * Get the local directory name of a library.
+   *
+   * @param string $version
+   *   The version to check the file against.
+   *
+   * @return string
+   *   Return the directory name.
+   */
+  public function getLocalDirectoryName($version = NULL);
+
+  /**
+   * Copy a library from the CDN to the local filesystem.
+   *
+   * @param array $versions
+   *   The library versions to copy.
+   */
+  public function getLocalCopy(array $versions = array());
+
 }

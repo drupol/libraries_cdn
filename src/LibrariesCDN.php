@@ -232,21 +232,66 @@ class LibrariesCDN extends \Drupal {
     $name = isset($information['name']) ? $information['name'] : self::getLibrary();
 
     foreach (self::getFiles() as $version => $files) {
-      $variant = self::$plugin->getPluginId() . ':' . $version;
       foreach ($files as $file) {
+        $variant = self::$plugin->getPluginId() . ':' . self::getLibrary() . ':' . $version;
         $ext = pathinfo($file, PATHINFO_EXTENSION);
 
         if (strpos($file, 'debug') !== FALSE || strpos($file, 'min') !== FALSE) {
           continue;
         }
 
+        // Default CDN version.
         $variants[$variant]['name'] = sprintf("%s %s", $name, $version);
         $variants[$variant]['library path'] = $module_path;
         $variants[$variant]['files'][$ext][$file] = array(
           'type' => 'external',
           'data' => $file,
-        ) + $options;
-      };
+        ) + $options['options'];
+
+        if (isset($options['download'])) {
+          $variant_local = 'local:' . self::$plugin->getPluginId() . ':' . self::getLibrary() . ':' . $version;
+
+          if (isset($options['download']['versions'])) {
+            $options['download']['versions'] = (array) $options['download']['versions'];
+            if (in_array($version, $options['download']['versions'])) {
+              self::$plugin->getLocalCopy(array($version));
+              $file = self::$plugin->getLocalFileName($file, $version);
+              $variants[$variant_local]['name'] = sprintf("%s %s (cloned from %s)", $name, $version, self::$plugin->getPluginId());
+              $variants[$variant_local]['library path'] = self::$plugin->getLocalDirectoryName($version);
+              $variants[$variant_local]['files'][$ext][$file] = array(
+                'type' => 'file',
+                'data' => $file,
+              ) + $options['options'];
+            }
+
+          }
+
+          if (isset($options['download']['plugins'])) {
+            $options['download']['plugins'] = (array) $options['download']['plugins'];
+            foreach ($options['download']['plugins'] as $plugin => $versions) {
+              $versions = array_map(function($version) {
+                if ($version === 'latest') {
+                  return self::$plugin->getLatestVersion();
+                }
+                else {
+                  return $version;
+                }
+              }, $versions);
+              if (($plugin == self::$plugin->getPluginId()) && (in_array($version, $versions))) {
+                self::$plugin->getLocalCopy(array($version));
+                $file = self::$plugin->getLocalFileName($file, $version);
+                $variants[$variant_local]['name'] = sprintf("%s %s (cloned from %s)", $name, $version, self::$plugin->getPluginId());
+                $variants[$variant_local]['library path'] = self::$plugin->getLocalDirectoryName($version);
+                $variants[$variant_local]['files'][$ext][$file] = array(
+                  'type' => 'file',
+                  'data' => $file,
+                ) + $options['options'];
+              }
+            }
+          }
+        }
+
+      }
     }
     return $variants;
   }

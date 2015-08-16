@@ -62,6 +62,11 @@ function mymodule_libraries_info() {
           'weight' => -2,
           'group' => 'MyLib',
         ),
+        'download' => array(
+          'versions' => array('3.8.1'),
+          'plugins' => array(
+            'cdnjs' => array('latest'),
+        )
       )
     )
   );
@@ -72,7 +77,9 @@ The explanation of this new key:
 - plugins: array, the list of cdn plugins to search the library from. Will use all if not set.
 - aliases: array, if the library has different names.
 - options: array, this array will be applied to each file definition, see ```drupal_add_TYPE()``` (js or css) to see which are the keys.
-
+- download: array, options to download a local copy of the library
+  - versions: array, version to download on any CDN when available.
+  - plugins: array, keys are CDN plugin ids. Values are versions to download when available. The special keyword: 'latest' can be used to download the latest version available.
 
 # Extend the module
 
