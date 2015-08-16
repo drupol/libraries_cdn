@@ -81,6 +81,27 @@ The explanation of this new key:
   - versions: array, version to download on any CDN when available.
   - plugins: array, keys are CDN plugin ids. Values are versions to download when available. The special keyword: 'latest' can be used to download the latest version available.
 
+You can include a library variant select in your module, here's an example:
+
+´´´
+  $library = libraries_detect('openlayers3');
+  $options_variants = array();
+  foreach ($library['variants'] as $version => $variant) {
+    list($optgroup) = explode(':', $version, 2);
+    if (empty($optgroup)) {
+      $optgroup = t('Other');
+    }
+    $optgroup = drupal_strtoupper($optgroup);
+    $options_variants[$optgroup][$version] = (isset($variant['name'])) ? $variant['name'] : $version;
+  }
+
+  $form['library'] = array(
+    '#type' => 'select',
+    '#title' => 'Select version of the library you want to use',
+    '#options' => $options_variants,
+  );
+´´´
+
 # Extend the module
 
 Create a simple drupal module.
