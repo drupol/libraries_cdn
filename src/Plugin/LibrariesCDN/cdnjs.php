@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Component: CDNJS.
+ * Plugin: CDNJS.
  */
 
 namespace Drupal\libraries_cdn\Plugin\LibrariesCDN;
@@ -52,7 +52,7 @@ class CDNJS extends CDNBase {
       return $this->available;
     }
 
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->query($this->getURL(__FUNCTION__));
 
     if ($data['total'] !== 0) {
       $this->available = TRUE;
@@ -68,7 +68,7 @@ class CDNJS extends CDNBase {
    * {@inheritdoc}
    */
   public function getVersions() {
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->query($this->getURL(__FUNCTION__));
 
     if (!$this->isAvailable()) {
       return array();
@@ -85,7 +85,7 @@ class CDNJS extends CDNBase {
    * {@inheritdoc}
    */
   public function getFiles(array $versions = array()) {
-    $data = $this->request($this->getURL(__FUNCTION__)) + array('assets' => array());
+    $data = $this->query($this->getURL(__FUNCTION__)) + array('assets' => array());
 
     if (!$this->isAvailable()) {
       return array();
@@ -103,7 +103,7 @@ class CDNJS extends CDNBase {
    * {@inheritdoc}
    */
   public function getInformation() {
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->query($this->getURL(__FUNCTION__));
 
     if (!$this->isAvailable()) {
       return array();
@@ -130,7 +130,7 @@ class CDNJS extends CDNBase {
       return array();
     }
 
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->query($this->getURL(__FUNCTION__));
 
     $results = array();
     foreach ($data['results'] as $library) {

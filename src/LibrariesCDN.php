@@ -86,8 +86,10 @@ class LibrariesCDN extends \Drupal {
   /**
    * Set the CDN plugin to use.
    *
-   * @param $plugin
-   * @param null $library
+   * @param string $plugin
+   *   The Plugin ID to use.
+   * @param string $library
+   *   The library to work with.
    */
   public static function setPlugin($plugin, $library = NULL) {
     /* @var CDNBaseInterface $plugin */
@@ -112,15 +114,17 @@ class LibrariesCDN extends \Drupal {
    * Set the library to work with.
    *
    * @param string $library
+   *   The library to work with.
    */
   public static function setLibrary($library) {
     self::$plugin->setLibrary($library);
   }
 
   /**
-   * Check if library is available
+   * Check if library is available.
    *
    * @return bool
+   *   Return TRUE if the library is available on the CDN, FALSE otherwise.
    */
   public static function isAvailable() {
     return self::$plugin->isAvailable();
@@ -130,6 +134,7 @@ class LibrariesCDN extends \Drupal {
    * Return all available version(s).
    *
    * @return array
+   *   Return an array of versions.
    */
   public static function getVersions() {
     return self::$plugin->getVersions();
@@ -139,6 +144,7 @@ class LibrariesCDN extends \Drupal {
    * Return all available file(s).
    *
    * @return array
+   *   Return an array of files, keyed by library versions.
    */
   public static function getFiles() {
     return self::$plugin->getFiles();
@@ -158,7 +164,9 @@ class LibrariesCDN extends \Drupal {
    * Set a particular URL.
    *
    * @param string $identifier
+   *   The identifier of the URL.
    * @param string $url
+   *   The URL.
    */
   public static function setURL($identifier, $url) {
     self::$plugin->setURL($identifier, $url);
@@ -277,7 +285,7 @@ class LibrariesCDN extends \Drupal {
                   return $version;
                 }
               }, $versions);
-              if (($plugin == self::$plugin->getPluginId()) && (in_array($version, $versions))) {
+              if (($plugin == self::$plugin->getPluginId() || $plugin == '*') && (in_array($version, $versions))) {
                 self::$plugin->getLocalCopy(array($version));
                 $file = self::$plugin->getLocalFileName($file, $version);
                 $variants[$variant_local]['name'] = sprintf("%s %s (cloned from %s)", $name, $version, self::$plugin->getPluginId());

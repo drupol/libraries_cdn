@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Component: jsDelivr.
+ * Plugin: jsDelivr.
  */
 
 namespace Drupal\libraries_cdn\Plugin\LibrariesCDN;
@@ -51,7 +51,7 @@ class JSDelivr extends CDNBase {
       return $this->available;
     }
 
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->query($this->getURL(__FUNCTION__));
 
     if (isset($data[0])) {
       $this->available = TRUE;
@@ -67,7 +67,7 @@ class JSDelivr extends CDNBase {
    * {@inheritdoc}
    */
   public function getVersions() {
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->query($this->getURL(__FUNCTION__));
 
     if (!$this->isAvailable()) {
       return array();
@@ -80,7 +80,7 @@ class JSDelivr extends CDNBase {
    * {@inheritdoc}
    */
   public function getFiles(array $versions = array()) {
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->query($this->getURL(__FUNCTION__));
 
     if (!$this->isAvailable()) {
       return array();
@@ -110,7 +110,7 @@ class JSDelivr extends CDNBase {
    * {@inheritdoc}
    */
   public function getInformation() {
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->query($this->getURL(__FUNCTION__));
 
     if (isset($data[0])) {
       return $data[0];
@@ -128,7 +128,7 @@ class JSDelivr extends CDNBase {
       return array();
     }
 
-    $data = $this->request($this->getURL(__FUNCTION__));
+    $data = $this->query($this->getURL(__FUNCTION__));
 
     $results = array();
     foreach ($data as $library) {

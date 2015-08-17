@@ -80,11 +80,18 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function request($url, array $options = array()) {
-    $request = drupal_http_request(sprintf($url, $this->getLibrary()), $options);
-    if ($request->code != 200) {
-      return FALSE;
+    return (array) drupal_http_request($url, $options);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function query($url, array $options = array()) {
+    $request = $this->request(sprintf($url, $this->getLibrary()), $options);
+    if ($request['code'] != 200) {
+      return array();
     }
-    return json_decode($request->data, TRUE);
+    return json_decode($request['data'], TRUE);
   }
 
   /**
