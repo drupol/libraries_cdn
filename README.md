@@ -58,6 +58,7 @@ function mymodule_libraries_info() {
       'variants' => array(),
       'cdn' => array(
         'aliases' => array('mlib', 'mylib'),
+        'limit' => 3,
         'options' => array(
           'weight' => -2,
           'group' => 'MyLib',
@@ -76,6 +77,7 @@ function mymodule_libraries_info() {
 The explanation of this new key:
 - plugins: array, the list of cdn plugins to search the library from. Will use all if not set.
 - aliases: array, if the library has different names.
+- limit: integer, set this to limit the number of results. If set to 3, it will return the 3 latest versions available.
 - options: array, this array will be applied to each file definition, see ```drupal_add_TYPE()``` (js or css) to see which are the keys.
 - download: array, options to download a local copy of the library
   - versions: array, version to download on any CDN when available.

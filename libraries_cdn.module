@@ -15,6 +15,7 @@
  *
  * 'cdn' => array(
  *   'aliases' => array('ol3', 'openlayers3'),
+ *   'limit' => 3,
  *   'options' => array(
  *     'weight' => 0,
  *     'group' => $js_css_group,
@@ -28,7 +29,11 @@
  *   )
  * )
  *
+ * - plugins: array, the list of cdn plugins to search the library from.
+ *            It Will use all of them if not set.
  * - aliases: array, if the library has different names.
+ * - limit: integer, set this to limit the number of results. If set to 3, it
+ *          will return the 3 latest versions available.
  * - options: array, this array will be applied to each file definition,
  *            see drupal_add_TYPE() (js or css) to see which are the keys.
  * - download: array, options to download a local copy of the library
@@ -49,8 +54,16 @@ function libraries_cdn_libraries_info_alter(&$info) {
       if (!isset($options['options'])) {
         $options['options'] = array();
       }
+
+      $availablePlugins = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
+
       if (!isset($options['plugins']) || empty($options['plugins'])) {
-        $options['plugins'] = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
+        $options['plugins'] = $availablePlugins;
+      }
+      else {
+        $options['plugins'] = array_filter($options['filter'], function($value) use ($availablePlugins) {
+          return in_array($value, $availablePlugins);
+        });
       }
 
       if (!isset($options['aliases'])) {
@@ -71,6 +84,47 @@ function libraries_cdn_libraries_info_alter(&$info) {
   }
 
   $library['cdn']['processed'] = TRUE;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function libraries_cdn_cron() {
+  $libraries = libraries_info();
+
+  foreach ($libraries as $library_name => $library) {
+    if (isset($library['cdn'])) {
+      $options = $library['cdn'];
+
+      if (!isset($options['options'])) {
+        $options['options'] = array();
+      }
+
+      $availablePlugins = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
+
+      if (!isset($options['plugins']) || empty($options['plugins'])) {
+        $options['plugins'] = $availablePlugins;
+      }
+      else {
+        $options['plugins'] = array_filter($options['filter'], function($value) use ($availablePlugins) {
+          return in_array($value, $availablePlugins);
+        });
+      }
+
+      if (!isset($options['aliases'])) {
+        $options['aliases'] = array();
+      }
+      $options['aliases'] += array($library_name);
+      $options['aliases'] = array_unique($options['aliases']);
+
+      foreach ($options['aliases'] as $alias) {
+        foreach ($options['plugins'] as $plugin) {
+          \Drupal\libraries_cdn\LibrariesCDN::setPlugin($plugin, $alias);
+          \Drupal\libraries_cdn\LibrariesCDN::getLocalLibrariesVariants($options);
+        }
+      }
+    }
+  }
 }
 
 /**

@@ -234,6 +234,28 @@ class LibrariesCDN extends \Drupal {
    */
   public static function getLibrariesVariants(array $options = array()) {
     $variants = array();
+
+    $variants += self::getCDNLibrariesVariants($options);
+    $variants += self::getLocalLibrariesVariants($options);
+
+    return $variants;
+  }
+
+  /**
+   * Generate an array for the variants of the Libraries API module.
+   *
+   * These variants are from the CDN plugins only.
+   *
+   * @param array $options
+   *   Array to apply to each file.
+   *
+   * @return array
+   *   The returned array can be applied to the 'variants' key in the library
+   *   definition in hook_libraries_info().
+   */
+  public static function getCDNLibrariesVariants(array $options = array()) {
+    $variants = array();
+
     $module_path = drupal_get_path('module', 'libraries_cdn');
     $information = self::getInformation();
 
@@ -241,12 +263,12 @@ class LibrariesCDN extends \Drupal {
 
     foreach (self::getFiles() as $version => $files) {
       foreach ($files as $file) {
-        $variant = self::$plugin->getPluginId() . ':' . self::getLibrary() . ':' . $version;
-        $ext = pathinfo($file, PATHINFO_EXTENSION);
-
         if (strpos($file, 'debug') !== FALSE || strpos($file, 'min') !== FALSE) {
           continue;
         }
+
+        $variant = self::$plugin->getPluginId() . ':' . self::getLibrary() . ':' . $version;
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
 
         // Default CDN version.
         $variants[$variant]['name'] = sprintf("%s %s", $name, $version);
@@ -255,18 +277,59 @@ class LibrariesCDN extends \Drupal {
           'type' => 'external',
           'data' => $file,
         ) + $options['options'];
+      }
+    }
+
+    if (isset($options['limit']) && is_int(intval($options['limit'])) && $options['limit'] > 0) {
+      $variants = array_slice($variants, 0, $options['limit']);
+    }
+    return $variants;
+  }
+
+  /**
+   * Generate an array for the variants of the Libraries API module.
+   *
+   * These variants are from the local installation only.
+   *
+   * @param array $options
+   *   Array to apply to each file.
+   *
+   * @return array
+   *   The returned array can be applied to the 'variants' key in the library
+   *   definition in hook_libraries_info().
+   */
+  public static function getLocalLibrariesVariants(array $options = array()) {
+    $variants = array();
+    $information = self::getInformation();
+
+    $name = isset($information['name']) ? $information['name'] : self::getLibrary();
+
+    foreach (self::getFiles() as $version => $files) {
+      foreach ($files as $file) {
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+
+        if (strpos($file, 'debug') !== FALSE || strpos($file, 'min') !== FALSE) {
+          continue;
+        }
 
         if (isset($options['download'])) {
-          $variant_local = 'local:' . self::$plugin->getPluginId() . ':' . self::getLibrary() . ':' . $version;
+          $variant = 'local:' . self::$plugin->getPluginId() . ':' . self::getLibrary() . ':' . $version;
 
           if (isset($options['download']['versions'])) {
-            $options['download']['versions'] = (array) $options['download']['versions'];
-            if (in_array($version, $options['download']['versions'])) {
+            $versions = array_map(function($version) {
+              if ($version === 'latest') {
+                return self::$plugin->getLatestVersion();
+              }
+              else {
+                return $version;
+              }
+            }, (array) $options['download']['versions']);
+            if (in_array($version, $versions)) {
               self::$plugin->getLocalCopy(array($version));
               $file = self::$plugin->getLocalFileName($file, $version);
-              $variants[$variant_local]['name'] = sprintf("%s %s (cloned from %s)", $name, $version, self::$plugin->getPluginId());
-              $variants[$variant_local]['library path'] = self::$plugin->getLocalDirectoryName($version);
-              $variants[$variant_local]['files'][$ext][$file] = array(
+              $variants[$variant]['name'] = sprintf("%s %s (cloned from %s)", $name, $version, self::$plugin->getPluginId());
+              $variants[$variant]['library path'] = self::$plugin->getLocalDirectoryName($version);
+              $variants[$variant]['files'][$ext][$file] = array(
                 'type' => 'file',
                 'data' => $file,
               ) + $options['options'];
@@ -288,9 +351,9 @@ class LibrariesCDN extends \Drupal {
               if (($plugin == self::$plugin->getPluginId() || $plugin == '*') && (in_array($version, $versions))) {
                 self::$plugin->getLocalCopy(array($version));
                 $file = self::$plugin->getLocalFileName($file, $version);
-                $variants[$variant_local]['name'] = sprintf("%s %s (cloned from %s)", $name, $version, self::$plugin->getPluginId());
-                $variants[$variant_local]['library path'] = self::$plugin->getLocalDirectoryName($version);
-                $variants[$variant_local]['files'][$ext][$file] = array(
+                $variants[$variant]['name'] = sprintf("%s %s (cloned from %s)", $name, $version, self::$plugin->getPluginId());
+                $variants[$variant]['library path'] = self::$plugin->getLocalDirectoryName($version);
+                $variants[$variant]['files'][$ext][$file] = array(
                   'type' => 'file',
                   'data' => $file,
                 ) + $options['options'];
