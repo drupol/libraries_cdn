@@ -13,6 +13,12 @@ Libraries CDN API is an API module to retrieve data from CDN like CDNJS or jsDel
   // Set the cdn you want to use
   \Drupal\libraries_cdn\LibrariesCDN::setPlugin('cdnjs');
   
+  // Set the cdn and the library to use
+  \Drupal\libraries_cdn\LibrariesCDN::setPlugin('cdnjs', 'ol3');
+
+  // Set the cdn, the library and the configuration.
+  \Drupal\libraries_cdn\LibrariesCDN::setPlugin('cdnjs', 'ol3', array('request' => array('timeout' => 5)));
+
   // Set the library you want to get data from
   \Drupal\libraries_cdn\LibrariesCDN::setLibrary('openlayers');
   
@@ -67,14 +73,17 @@ function mymodule_libraries_info() {
           'versions' => array('3.8.1'),
           'plugins' => array(
             'cdnjs' => array('latest'),
-        )
+        ),
+        'request' => array(
+          'timeout' => 5,
+        ),
       )
     )
   );
 }
 ```
 
-The explanation of this new key:
+Details of this new sub-array:
 - plugins: array, the list of cdn plugins to search the library from. Will use all if not set.
 - aliases: array, if the library has different names.
 - limit: integer, set this to limit the number of results. If set to 3, it will return the 3 latest versions available.
@@ -82,8 +91,9 @@ The explanation of this new key:
 - download: array, options to download a local copy of the library
   - versions: array, version to download on any CDN when available.
   - plugins: array, keys are CDN plugin ids. Values are versions to download when available. The special keyword: 'latest' can be used to download the latest version available.
+- request: array, this array will be the configuration that will be passed to the request function. See drupal_http_request() for a list of key values.
 
-You can include a library variant select in your module, here's an example:
+To include a library variant selection in your module, here's an example of code that you can use:
 
 ´´´
   $library = libraries_detect('openlayers3');

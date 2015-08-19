@@ -22,8 +22,18 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   /**
    * {@inheritdoc}
    */
-  public function getConfiguration() {
-    return $this->configuration;
+  public function getConfiguration($key = NULL) {
+    if (isset($key) && is_string($key)) {
+      if (isset($this->configuration[$key])) {
+        return $this->configuration[$key];
+      }
+      else {
+        return NULL;
+      }
+    }
+    else {
+      return $this->configuration;
+    }
   }
 
   /**
@@ -88,16 +98,16 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   /**
    * {@inheritdoc}
    */
-  public function request($url, array $options = array()) {
-    return (array) drupal_http_request($url, $options);
+  public function request($url) {
+    return (array) drupal_http_request($url, (array) $this->getConfiguration('request'));
   }
 
   /**
    * {@inheritdoc}
    */
-  public function query($url, array $options = array()) {
+  public function query($url) {
     list($scheme, $url) = explode('://', $url, 2);
-    $request = $this->request(sprintf('%s://' . $url, $this->getScheme(), $this->getLibrary()), $options);
+    $request = $this->request(sprintf('%s://' . $url, $this->getScheme(), $this->getLibrary()));
     if ($request['code'] != 200) {
       return array();
     }

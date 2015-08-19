@@ -95,10 +95,16 @@ interface CDNBaseInterface extends PluginInspectionInterface {
    *
    * @param string $url
    *   The URL.
-   * @param array $options
-   *   The array of options passed to drupal_http_request.
    */
-  public function request($url, array $options = array());
+  public function request($url);
+
+  /**
+   * Request wrapper for querying a CDN.
+   *
+   * @param string $url
+   *   The URL.
+   */
+  public function query($url);
 
   /**
    * Get library information.
@@ -184,5 +190,26 @@ interface CDNBaseInterface extends PluginInspectionInterface {
    *   The default scheme is none is set.
    */
   public function getScheme($default = 'http');
+
+  /**
+   * Return the configuration of the object.
+   *
+   * @param string $key
+   *     A key of configuration.
+   *
+   * @return mixed
+   *    If a configuration item has a value for the key parameter in the
+   *    configuration array, then the function will return it, otherwise,
+   *    the whole configuration array is returned.
+   */
+  public function getConfiguration($key = NULL);
+
+  /**
+   * Set the configuration of the object.
+   *
+   * @param array $configuration
+   *   The configuration array.
+   */
+  public function setConfiguration(array $configuration = array());
 
 }
