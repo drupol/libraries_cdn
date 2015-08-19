@@ -74,16 +74,15 @@ function libraries_cdn_libraries_info_alter(&$info) {
 
       foreach ($options['aliases'] as $alias) {
         foreach ($options['plugins'] as $plugin) {
-          \Drupal\libraries_cdn\LibrariesCDN::setPlugin($plugin, $alias);
-          $variants += \Drupal\libraries_cdn\LibrariesCDN::getLibrariesVariants($options);
+          \Drupal\libraries_cdn\LibrariesCDN::setPlugin($plugin, $alias, $options);
+          $variants += \Drupal\libraries_cdn\LibrariesCDN::getLibrariesVariants();
         }
       }
 
       $library['variants'] += $variants;
     }
+    $library['cdn']['processed'] = TRUE;
   }
-
-  $library['cdn']['processed'] = TRUE;
 }
 
 /**
@@ -119,8 +118,8 @@ function libraries_cdn_cron() {
 
       foreach ($options['aliases'] as $alias) {
         foreach ($options['plugins'] as $plugin) {
-          \Drupal\libraries_cdn\LibrariesCDN::setPlugin($plugin, $alias);
-          \Drupal\libraries_cdn\LibrariesCDN::getLocalLibrariesVariants($options);
+          \Drupal\libraries_cdn\LibrariesCDN::setPlugin($plugin, $alias, $options);
+          \Drupal\libraries_cdn\LibrariesCDN::getLocalLibrariesVariants();
         }
       }
     }
@@ -136,14 +135,24 @@ function libraries_cdn_cron() {
  *   The cdn name or an array of CDN name.
  * @param null $version
  *   The version of the library. If not set it will detect the latest.
+ * @param array $configuration
+ *   The configuration to pass to the object.
  */
-function libraries_cdn_add($library, $cdns = array(), $version = NULL) {
+function libraries_cdn_add($library, $cdns = array(), $version = NULL, array $configuration = array()) {
   if (is_string($cdns)) {
     $cdns = (array) $cdns;
   }
 
   if (empty($cdns)) {
     $cdns = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
+  }
+
+  if (empty($configuration)) {
+    $configuration = array(
+      'request' => array(
+        'timeout' => 10,
+      ),
+    );
   }
 
   $found = FALSE;
@@ -153,7 +162,7 @@ function libraries_cdn_add($library, $cdns = array(), $version = NULL) {
       continue;
     }
     if (\Drupal\libraries_cdn\LibrariesCDN::isAvailableCDN($cdn)) {
-      \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library);
+      \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library, $configuration);
       if (\Drupal\libraries_cdn\LibrariesCDN::isAvailable()) {
 
         $user_version = $version ? $version : \Drupal\libraries_cdn\LibrariesCDN::getLatestVersion();

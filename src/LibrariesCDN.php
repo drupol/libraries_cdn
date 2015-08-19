@@ -91,9 +91,9 @@ class LibrariesCDN extends \Drupal {
    * @param string $library
    *   The library to work with.
    */
-  public static function setPlugin($plugin, $library = NULL) {
+  public static function setPlugin($plugin, $library = NULL, $configuration = array()) {
     /* @var CDNBaseInterface $plugin */
-    $plugin = self::service('libraries_cdn.LibrariesCDN')->createInstance($plugin);
+    $plugin = self::service('libraries_cdn.LibrariesCDN')->createInstance($plugin, $configuration);
     if ($library) {
       $plugin->setLibrary($library);
     }
@@ -225,18 +225,15 @@ class LibrariesCDN extends \Drupal {
   /**
    * Generate an array for the variants of the Libraries API module.
    *
-   * @param array $options
-   *   Array to apply to each file.
-   *
    * @return array
    *   The returned array can be applied to the 'variants' key in the library
    *   definition in hook_libraries_info().
    */
-  public static function getLibrariesVariants(array $options = array()) {
+  public static function getLibrariesVariants() {
     $variants = array();
 
-    $variants += self::getCDNLibrariesVariants($options);
-    $variants += self::getLocalLibrariesVariants($options);
+    $variants += self::getCDNLibrariesVariants();
+    $variants += self::getLocalLibrariesVariants();
 
     return $variants;
   }
@@ -246,18 +243,16 @@ class LibrariesCDN extends \Drupal {
    *
    * These variants are from the CDN plugins only.
    *
-   * @param array $options
-   *   Array to apply to each file.
-   *
    * @return array
    *   The returned array can be applied to the 'variants' key in the library
    *   definition in hook_libraries_info().
    */
-  public static function getCDNLibrariesVariants(array $options = array()) {
+  public static function getCDNLibrariesVariants() {
     $variants = array();
 
     $module_path = drupal_get_path('module', 'libraries_cdn');
     $information = self::getInformation();
+    $configuration = self::$plugin->getConfiguration();
 
     $name = isset($information['name']) ? $information['name'] : self::getLibrary();
 
@@ -276,12 +271,12 @@ class LibrariesCDN extends \Drupal {
         $variants[$variant]['files'][$ext][$file] = array(
           'type' => 'external',
           'data' => $file,
-        ) + $options['options'];
+        ) + (array) self::$plugin->getConfiguration('options');
       }
     }
 
-    if (isset($options['limit']) && is_int(intval($options['limit'])) && $options['limit'] > 0) {
-      $variants = array_slice($variants, 0, $options['limit']);
+    if (isset($configuration['limit']) && is_int(intval($configuration['limit'])) && $configuration['limit'] > 0) {
+      $variants = array_slice($variants, 0, $configuration['limit']);
     }
     return $variants;
   }
@@ -291,14 +286,11 @@ class LibrariesCDN extends \Drupal {
    *
    * These variants are from the local installation only.
    *
-   * @param array $options
-   *   Array to apply to each file.
-   *
    * @return array
    *   The returned array can be applied to the 'variants' key in the library
    *   definition in hook_libraries_info().
    */
-  public static function getLocalLibrariesVariants(array $options = array()) {
+  public static function getLocalLibrariesVariants() {
     $variants = array();
     $information = self::getInformation();
 
@@ -332,7 +324,7 @@ class LibrariesCDN extends \Drupal {
               $variants[$variant]['files'][$ext][$file] = array(
                 'type' => 'file',
                 'data' => $file,
-              ) + $options['options'];
+              ) + (array) self::$plugin->getConfiguration('options');
             }
 
           }
@@ -356,12 +348,11 @@ class LibrariesCDN extends \Drupal {
                 $variants[$variant]['files'][$ext][$file] = array(
                   'type' => 'file',
                   'data' => $file,
-                ) + $options['options'];
+                ) + (array) self::$plugin->getConfiguration('options');
               }
             }
           }
         }
-
       }
     }
     return $variants;
