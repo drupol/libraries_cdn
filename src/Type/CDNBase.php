@@ -12,16 +12,11 @@ use Drupal\Component\Plugin\PluginBase;
  */
 abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   /**
-   * This flag is set to true when the library is available.
-   */
-  protected $available;
-
-  /**
    * {@inheritdoc}
    */
   public function setConfiguration(array $configuration = array()) {
     $this->configuration = $configuration;
-    $this->available = NULL;
+    $this->configuration['available'] = NULL;
   }
 
   /**
@@ -36,7 +31,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    */
   public function setLibrary($library) {
     $this->configuration['library'] = $library;
-    $this->available = NULL;
+    $this->configuration['available'] = NULL;
   }
 
   /**
@@ -51,14 +46,14 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    */
   public function setURL($identifier, $url) {
     $this->configuration['urls'][$identifier] = $url;
-    $this->available = NULL;
+    $this->configuration['available'] = NULL;
   }
 
   /**
    * {@inheritdoc}
    */
   public function getURL($identifier) {
-    return $this->configuration['urls'][$identifier];
+    return isset($this->configuration['urls'][$identifier]) ? $this->configuration['urls'][$identifier] : FALSE;
   }
 
   /**
@@ -66,7 +61,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    */
   public function setURLs(array $urls = array()) {
     $this->configuration['urls'] = $urls;
-    $this->available = NULL;
+    $this->configuration['available'] = NULL;
   }
 
   /**
@@ -74,6 +69,20 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    */
   public function getURLs() {
     return $this->configuration['urls'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setScheme($default = 'http') {
+    $this->configuration['scheme'] = trim(substr($default, 0, 5));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getScheme($default = 'http') {
+    return empty($this->configuration['scheme']) ? $default : $this->configuration['scheme'];
   }
 
   /**
@@ -87,7 +96,8 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function query($url, array $options = array()) {
-    $request = $this->request(sprintf($url, $this->getLibrary()), $options);
+    list($scheme, $url) = explode('://', $url, 2);
+    $request = $this->request(sprintf('%s://' . $url, $this->getScheme(), $this->getLibrary()), $options);
     if ($request['code'] != 200) {
       return array();
     }
@@ -112,7 +122,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function isAvailable() {
-    return $this->available;
+    return (bool) $this->configuration['available'];
   }
 
   /**
@@ -140,11 +150,10 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function convertFiles(array $files, $version) {
-    $results = array();
-    foreach ($files as $file) {
-      $results[] = sprintf($this->getURL(__FUNCTION__), $this->getLibrary(), $version) . $file;
-    }
-    return $results;
+    $url = $this->getURL(__FUNCTION__);
+    return array_map(function($v) use ($url, $version) {
+      return sprintf($url, $this->getLibrary(), $version) . $v;
+    }, $files);
   }
 
   /**
@@ -192,8 +201,11 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
         if (!$this->isLocalAvailable($file, $version)) {
           $directory = $this->getLocalDirectoryName($version);
           file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
-          $data = drupal_http_request('http:' . $file);
-          file_unmanaged_save_data($data->data, $this->getLocalFileName($file, $version), FILE_EXISTS_REPLACE);
+          file_prepare_directory($directory, FILE_MODIFY_PERMISSIONS);
+          $request = $this->request($this->getScheme() . ':' . $file);
+          if ($request['code'] == 200) {
+            file_unmanaged_save_data($request['data'], $this->getLocalFileName($file, $version), FILE_EXISTS_REPLACE);
+          }
         }
       }
     }

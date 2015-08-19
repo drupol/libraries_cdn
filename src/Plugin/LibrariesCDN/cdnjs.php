@@ -21,11 +21,6 @@ use Drupal\libraries_cdn\Types\CDNBaseInterface;
  */
 class CDNJS extends CDNBase {
   /**
-   * This flag is set to true when the library is available.
-   */
-  protected $available;
-
-  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
@@ -48,18 +43,18 @@ class CDNJS extends CDNBase {
    * {@inheritdoc}
    */
   public function isAvailable() {
-    if (isset($this->available)) {
-      return $this->available;
+    if (isset($this->configuration['available'])) {
+      return (bool) $this->configuration['available'];
     }
 
     $data = $this->query($this->getURL(__FUNCTION__));
 
-    if ($data['total'] !== 0) {
-      $this->available = TRUE;
+    if (isset($data['total']) && $data['total'] !== 0) {
+      $this->configuration['available'] = TRUE;
       return TRUE;
     }
     else {
-      $this->available = FALSE;
+      $this->configuration['available'] = FALSE;
       return FALSE;
     }
   }
@@ -74,11 +69,9 @@ class CDNJS extends CDNBase {
       return array();
     }
 
-    $results = array();
-    foreach ((array) $data['results'][0]['assets'] as $asset) {
-      $results[] = $asset['version'];
-    }
-    return $results;
+    return array_map(function($v) {
+      return $v['version'];
+    }, $data['results'][0]['assets']);
   }
 
   /**
@@ -132,11 +125,9 @@ class CDNJS extends CDNBase {
 
     $data = $this->query($this->getURL(__FUNCTION__));
 
-    $results = array();
-    foreach ($data['results'] as $library) {
-      $results[] = $library['name'];
-    }
-    return $results;
+    return array_map(function($v) {
+      return $v['name'];
+    }, $data['results']);
   }
 
 }

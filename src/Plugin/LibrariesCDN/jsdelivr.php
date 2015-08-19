@@ -20,11 +20,6 @@ use Drupal\libraries_cdn\Types\CDNBase;
  */
 class JSDelivr extends CDNBase {
   /**
-   * This flag is set to true when the library is available.
-   */
-  protected $available;
-
-  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
@@ -47,18 +42,18 @@ class JSDelivr extends CDNBase {
    * {@inheritdoc}
    */
   public function isAvailable() {
-    if (isset($this->available)) {
-      return $this->available;
+    if (isset($this->configuration['available'])) {
+      return (bool) $this->configuration['available'];
     }
 
     $data = $this->query($this->getURL(__FUNCTION__));
 
     if (isset($data[0])) {
-      $this->available = TRUE;
+      $this->configuration['available'] = TRUE;
       return TRUE;
     }
     else {
-      $this->available = FALSE;
+      $this->configuration['available'] = FALSE;
       return FALSE;
     }
   }
@@ -73,7 +68,7 @@ class JSDelivr extends CDNBase {
       return array();
     }
 
-    return $data[0]['versions'];
+    return array_values($data[0]['versions']);
   }
 
   /**
@@ -130,11 +125,9 @@ class JSDelivr extends CDNBase {
 
     $data = $this->query($this->getURL(__FUNCTION__));
 
-    $results = array();
-    foreach ($data as $library) {
-      $results[] = $library['name'];
-    }
-    return $results;
+    return array_map(function($v) {
+      return $v['name'];
+    }, $data);
   }
 
 }

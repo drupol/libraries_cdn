@@ -169,4 +169,20 @@ interface CDNBaseInterface extends PluginInspectionInterface {
    */
   public function getLocalCopy(array $versions = array());
 
+  /**
+   * Set default scheme for an url.
+   *
+   * @param string $default
+   *   The scheme.
+   */
+  public function setScheme($default = 'http');
+
+  /**
+   * Get the default scheme.
+   *
+   * @param string $default
+   *   The default scheme is none is set.
+   */
+  public function getScheme($default = 'http');
+
 }
