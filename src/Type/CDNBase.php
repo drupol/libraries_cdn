@@ -118,42 +118,88 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function getLatestVersion() {
-    return FALSE;
+    return $this->formatData(__FUNCTION__, $this->getInformation());
   }
 
   /**
    * {@inheritdoc}
    */
   public function search($library) {
-    return array();
+    $this->setLibrary($library);
+
+    if (!$this->isAvailable()) {
+      return array();
+    }
+
+    $data = $this->formatData(__FUNCTION__, $this->query($this->getURL(__FUNCTION__)));
+
+    return array_map(function($v) {
+      return $v['name'];
+    }, $data);
   }
 
   /**
    * {@inheritdoc}
    */
   public function isAvailable() {
-    return (bool) $this->configuration['available'];
+    if (isset($this->configuration['available'])) {
+      return (bool) $this->configuration['available'];
+    }
+
+    $data = $this->query($this->getURL(__FUNCTION__));
+
+    if (count($this->formatData(__FUNCTION__, $data)) !== 0) {
+      $this->configuration['available'] = TRUE;
+      return TRUE;
+    }
+    else {
+      $this->configuration['available'] = FALSE;
+      return FALSE;
+    }
   }
 
   /**
    * {@inheritdoc}
    */
   public function getVersions() {
-    return array();
+    $data = $this->query($this->getURL(__FUNCTION__));
+
+    if (!$this->isAvailable()) {
+      return array();
+    }
+
+    $data = $this->formatData(__FUNCTION__, $data);
+
+    return array_map(function($v) {
+      return $v['version'];
+    }, $data);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getFiles(array $version = array()) {
-    return array();
+  public function getFiles(array $versions = array()) {
+    $data = $this->query($this->getURL(__FUNCTION__));
+
+    if (!$this->isAvailable()) {
+      return array();
+    }
+
+    $data = $this->formatData(__FUNCTION__, $data);
+
+    $results = array();
+    foreach ($data as $asset) {
+      $results[$asset['version']] = $this->convertFiles($asset['files'], $asset['version']);
+    }
+
+    return empty($versions) ? $results : array_intersect_key($results, array_combine(array_values($versions), array_values($versions)));
   }
 
   /**
    * {@inheritdoc}
    */
   public function getInformation() {
-    return array();
+    return $this->formatData(__FUNCTION__, $this->query($this->getURL(__FUNCTION__)));
   }
 
   /**
@@ -219,6 +265,13 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
         }
       }
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function formatData($function, array $data = array()) {
+    return $data;
   }
 
 }

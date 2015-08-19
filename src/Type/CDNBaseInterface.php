@@ -212,4 +212,17 @@ interface CDNBaseInterface extends PluginInspectionInterface {
    */
   public function setConfiguration(array $configuration = array());
 
+  /**
+   * Return the data to use in each method.
+   *
+   * @param string $function
+   *   The method name.
+   * @param array $data
+   *   The data from query.
+   *
+   * @return array
+   *   The resulting array.
+   */
+  public function formatData($function, array $data = array());
+
 }

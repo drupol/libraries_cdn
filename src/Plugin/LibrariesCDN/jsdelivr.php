@@ -41,93 +41,23 @@ class JSDelivr extends CDNBase {
   /**
    * {@inheritdoc}
    */
-  public function isAvailable() {
-    if (isset($this->configuration['available'])) {
-      return (bool) $this->configuration['available'];
+  public function formatData($function, array $data = array()) {
+    switch ($function) {
+      case 'getVersions':
+        return (array) $data[0]['versions'];
+
+      case 'getFiles':
+        return (array) $data[0]['assets'];
+
+      case 'getLatestVersion':
+        return $data['lastversion'];
+
+      case 'getInformation':
+        return array_shift($data);
+
+      default:
+        return $data;
     }
-
-    $data = $this->query($this->getURL(__FUNCTION__));
-
-    if (isset($data[0])) {
-      $this->configuration['available'] = TRUE;
-      return TRUE;
-    }
-    else {
-      $this->configuration['available'] = FALSE;
-      return FALSE;
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getVersions() {
-    $data = $this->query($this->getURL(__FUNCTION__));
-
-    if (!$this->isAvailable()) {
-      return array();
-    }
-
-    return array_values($data[0]['versions']);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getFiles(array $versions = array()) {
-    $data = $this->query($this->getURL(__FUNCTION__));
-
-    if (!$this->isAvailable()) {
-      return array();
-    }
-
-    $results = array();
-    foreach ((array) $data[0]['assets'] as $asset) {
-      $results[$asset['version']] = $this->convertFiles($asset['files'], $asset['version']);
-    }
-
-    return empty($versions) ? $results : array_intersect_key($results, array_combine(array_values($versions), array_values($versions)));
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getLatestVersion() {
-    $information = $this->getInformation();
-
-    if (isset($information['lastversion'])) {
-      return $information['lastversion'];
-    }
-    return FALSE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getInformation() {
-    $data = $this->query($this->getURL(__FUNCTION__));
-
-    if (isset($data[0])) {
-      return $data[0];
-    }
-    return FALSE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function search($library) {
-    $this->setLibrary($library);
-
-    if (!$this->isAvailable()) {
-      return array();
-    }
-
-    $data = $this->query($this->getURL(__FUNCTION__));
-
-    return array_map(function($v) {
-      return $v['name'];
-    }, $data);
   }
 
 }

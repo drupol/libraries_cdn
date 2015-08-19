@@ -30,7 +30,7 @@ class CDNJS extends CDNBase {
     $configuration['urls'] += array(
       'isAvailable' => 'http://api.cdnjs.com/libraries?search=%s',
       'getInformation' => 'http://api.cdnjs.com/libraries/%s',
-      'getVersions' => 'http://api.cdnjs.com/libraries?search=%s&fields=assets',
+      'getVersions' => 'http://api.cdnjs.com/libraries/%s',
       'getFiles' => 'http://api.cdnjs.com/libraries/%s',
       'search' => 'http://api.cdnjs.com/libraries?search=%s',
       'convertFiles' => '//cdnjs.cloudflare.com/ajax/libs/%s/%s/',
@@ -42,92 +42,22 @@ class CDNJS extends CDNBase {
   /**
    * {@inheritdoc}
    */
-  public function isAvailable() {
-    if (isset($this->configuration['available'])) {
-      return (bool) $this->configuration['available'];
+  public function formatData($function, array $data = array()) {
+    switch ($function) {
+      case 'search':
+      case 'isAvailable':
+        return (array) $data['results'];
+
+      case 'getVersions':
+      case 'getFiles':
+        return (array) $data['assets'];
+
+      case 'getLatestVersion':
+        return $data['version'];
+
+      default:
+        return $data;
     }
-
-    $data = $this->query($this->getURL(__FUNCTION__));
-
-    if (isset($data['total']) && $data['total'] !== 0) {
-      $this->configuration['available'] = TRUE;
-      return TRUE;
-    }
-    else {
-      $this->configuration['available'] = FALSE;
-      return FALSE;
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getVersions() {
-    $data = $this->query($this->getURL(__FUNCTION__));
-
-    if (!$this->isAvailable()) {
-      return array();
-    }
-
-    return array_map(function($v) {
-      return $v['version'];
-    }, $data['results'][0]['assets']);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getFiles(array $versions = array()) {
-    $data = $this->query($this->getURL(__FUNCTION__)) + array('assets' => array());
-
-    if (!$this->isAvailable()) {
-      return array();
-    }
-
-    $results = array();
-    foreach ((array) $data['assets'] as $asset) {
-      $results[$asset['version']] = $this->convertFiles($asset['files'], $asset['version']);
-    }
-
-    return empty($versions) ? $results : array_intersect_key($results, array_combine(array_values($versions), array_values($versions)));
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getInformation() {
-    $data = $this->query($this->getURL(__FUNCTION__));
-
-    if (!$this->isAvailable()) {
-      return array();
-    }
-
-    return $data;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getLatestVersion() {
-    $information = $this->getInformation();
-    return $information['version'];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function search($library) {
-    $this->setLibrary($library);
-
-    if (!$this->isAvailable()) {
-      return array();
-    }
-
-    $data = $this->query($this->getURL(__FUNCTION__));
-
-    return array_map(function($v) {
-      return $v['name'];
-    }, $data['results']);
   }
 
 }
