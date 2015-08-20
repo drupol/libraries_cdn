@@ -4,13 +4,22 @@
  * Class CDNBase.
  */
 
-namespace Drupal\libraries_cdn\Types;
+namespace Drupal\libraries_cdn\Type;
 use Drupal\Component\Plugin\PluginBase;
+use Drupal\service_container\Legacy\Drupal7;
 
 /**
  * Class CDNBase.
  */
 abstract class CDNBase extends PluginBase implements CDNBaseInterface {
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, Drupal7 $drupal7) {
+    $this->drupal7 = $drupal7;
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -99,7 +108,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function request($url) {
-    return (array) drupal_http_request($url, (array) $this->getConfiguration('request'));
+    return (array) $this->drupal7->drupal_http_request($url, (array) $this->getConfiguration('request'));
   }
 
   /**
@@ -107,7 +116,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    */
   public function query($url) {
     list($scheme, $url) = explode('://', $url, 2);
-    $request = $this->request(sprintf('%s://' . $url, $this->getScheme(), $this->getLibrary()));
+    $request = $this->request(sprintf('%s://' . $url, $this->getScheme($scheme), $this->getLibrary()));
     if ($request['code'] != 200) {
       return array();
     }
@@ -162,34 +171,32 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function getVersions() {
-    $data = $this->query($this->getURL(__FUNCTION__));
-
     if (!$this->isAvailable()) {
       return array();
     }
 
-    $data = $this->formatData(__FUNCTION__, $data);
+    $data = $this->formatData(__FUNCTION__, $this->query($this->getURL(__FUNCTION__)));
 
-    return array_map(function($v) {
-      return $v['version'];
-    }, $data);
+    return array_filter(array_map(function($v) {
+      return isset($v['version']) ? $v['version'] : NULL;
+    }, $data));
   }
 
   /**
    * {@inheritdoc}
    */
   public function getFiles(array $versions = array()) {
-    $data = $this->query($this->getURL(__FUNCTION__));
-
     if (!$this->isAvailable()) {
       return array();
     }
 
-    $data = $this->formatData(__FUNCTION__, $data);
+    $data = $this->formatData(__FUNCTION__, $this->query($this->getURL(__FUNCTION__)));
 
     $results = array();
     foreach ($data as $asset) {
-      $results[$asset['version']] = $this->convertFiles($asset['files'], $asset['version']);
+      if (isset($asset['version']) && isset($asset['files']) && is_array($asset['files'])) {
+        $results[$asset['version']] = $this->convertFiles($asset['files'], $asset['version']);
+      }
     }
 
     return empty($versions) ? $results : array_intersect_key($results, array_combine(array_values($versions), array_values($versions)));

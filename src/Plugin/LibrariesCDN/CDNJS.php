@@ -8,22 +8,25 @@ namespace Drupal\libraries_cdn\Plugin\LibrariesCDN;
 
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\libraries_cdn\Component\Annotation\LibrariesCDNPlugin;
-use Drupal\libraries_cdn\Types\CDNBase;
-use Drupal\libraries_cdn\Types\CDNBaseInterface;
+use Drupal\libraries_cdn\Type\CDNBase;
+use Drupal\service_container\Legacy\Drupal7;
 
 /**
  * Class CDNJS.
  *
  * @LibrariesCDNPlugin(
  *  id = "cdnjs",
- *  description = "CDNJS Integration"
+ *  description = "CDNJS Integration",
+ *  arguments = {
+ *    "@drupal7"
+ *  }
  * )
  */
 class CDNJS extends CDNBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, Drupal7 $drupal7) {
     if (empty($configuration['urls'])) {
       $configuration['urls'] = array();
     }
@@ -36,7 +39,7 @@ class CDNJS extends CDNBase {
       'convertFiles' => '//cdnjs.cloudflare.com/ajax/libs/%s/%s/',
     );
 
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $drupal7);
   }
 
   /**
@@ -46,14 +49,14 @@ class CDNJS extends CDNBase {
     switch ($function) {
       case 'search':
       case 'isAvailable':
-        return (array) $data['results'];
+        return isset($data['results']) ? (array) $data['results'] : $data;
 
       case 'getVersions':
       case 'getFiles':
-        return (array) $data['assets'];
+        return isset($data['assets']) ? (array) $data['assets'] : $data;
 
       case 'getLatestVersion':
-        return $data['version'];
+        return isset($data['version']) ? $data['version'] : NULL;
 
       default:
         return $data;
