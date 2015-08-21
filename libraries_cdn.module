@@ -25,7 +25,10 @@
  *     'plugins' => array(
  *       'cdnjs' => array('3.8.2')
  *       '*' => array('latest')
- *     )
+ *     ),
+ *   ),
+ *   'request' => array(
+ *     'timeout' => 5,
  *   )
  * )
  *
@@ -42,6 +45,9 @@
  *              be use to specify all CDN plugins. Values are versions to
  *              download when available. The special keyword: 'latest' can be
  *              used to download the latest version available.
+ * - request: array, this array will be the configuration that will be passed
+ *            to the request function. See drupal_http_request() for a list of
+ *            key values.
  */
 function libraries_cdn_libraries_info_alter(&$info) {
   foreach ($info as $library_name => &$library) {
@@ -127,7 +133,7 @@ function libraries_cdn_cron() {
 }
 
 /**
- * Function to add a library to a page. This is under heavy development.
+ * Function to add a library to a page.
  *
  * @param mixed $cdns
  *   The cdn name or an array of CDN name.
@@ -200,18 +206,15 @@ function libraries_cdn_add($cdns = array(), $library = NULL, $version = NULL, ar
   if (!empty($results)) {
     foreach ($results as $type => $files) {
       foreach ($files as $file) {
-        $options = array(
-          'type' => 'external',
-        );
-        call_user_func_array('drupal_add_' . $type, array($file, $options));
+        call_user_func_array('drupal_add_' . $type, array($file, array('type' => 'external')));
       }
     }
   }
 }
 
 /**
- * Use the #attached key of a render array to attach any cdn libraries, just
- * like any other regular library.
+ * Use the #attached key of a render array to attach any cdn libraries,
+ * just like any other regular libraries.
  *
  * Example:
  *
