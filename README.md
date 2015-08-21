@@ -95,24 +95,40 @@ Details of this new sub-array:
 
 To include a library variant selection in your module, here's an example of code that you can use:
 
-´´´
-  $library = libraries_detect('openlayers3');
-  $options_variants = array();
-  foreach ($library['variants'] as $version => $variant) {
-    list($optgroup) = explode(':', $version, 2);
-    if (empty($optgroup)) {
-      $optgroup = t('Other');
-    }
-    $optgroup = drupal_strtoupper($optgroup);
-    $options_variants[$optgroup][$version] = (isset($variant['name'])) ? $variant['name'] : $version;
+```
+$library = libraries_detect('openlayers3');
+$options_variants = array();
+foreach ($library['variants'] as $version => $variant) {
+  list($optgroup) = explode(':', $version, 2);
+  if (empty($optgroup)) {
+    $optgroup = t('Other');
   }
+  $optgroup = drupal_strtoupper($optgroup);
+  $options_variants[$optgroup][$version] = (isset($variant['name'])) ? $variant['name'] : $version;
+}
+$form['library'] = array(
+  '#type' => 'select',
+  '#title' => 'Select version of the library you want to use',
+  '#options' => $options_variants,
+);
+```
 
-  $form['library'] = array(
-    '#type' => 'select',
-    '#title' => 'Select version of the library you want to use',
-    '#options' => $options_variants,
-  );
-´´´
+# Integration using #attached
+
+Use the ```#attached``` key of a render array to attach any CDN libraries, just like any other regular libraries.
+
+```
+$form['#attached'] = array(
+ 'libraries_cdn_load' => array(
+   array('ol3', 'cdnjs', '3.8.2'),
+ ),
+);
+```
+
+The parameters are:
+- String, required: The library name 
+- String, optional: The CDN to get the library from. (use ```*``` to query all CDN available and use the first who has it)
+- String, optional: The version. Will get the latest version if omitted.
 
 # Extend the module
 

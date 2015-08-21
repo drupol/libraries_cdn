@@ -55,14 +55,14 @@ function libraries_cdn_libraries_info_alter(&$info) {
         $options['options'] = array();
       }
 
-      $availablePlugins = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
+      $available_plugins = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
 
       if (!isset($options['plugins']) || empty($options['plugins'])) {
-        $options['plugins'] = $availablePlugins;
+        $options['plugins'] = $available_plugins;
       }
       else {
-        $options['plugins'] = array_filter($options['filter'], function($value) use ($availablePlugins) {
-          return in_array($value, $availablePlugins);
+        $options['plugins'] = array_filter($options['filter'], function($value) use ($available_plugins) {
+          return in_array($value, $available_plugins);
         });
       }
 
@@ -99,14 +99,14 @@ function libraries_cdn_cron() {
         $options['options'] = array();
       }
 
-      $availablePlugins = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
+      $available_plugins = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
 
       if (!isset($options['plugins']) || empty($options['plugins'])) {
-        $options['plugins'] = $availablePlugins;
+        $options['plugins'] = $available_plugins;
       }
       else {
-        $options['plugins'] = array_filter($options['filter'], function($value) use ($availablePlugins) {
-          return in_array($value, $availablePlugins);
+        $options['plugins'] = array_filter($options['filter'], function($value) use ($available_plugins) {
+          return in_array($value, $available_plugins);
         });
       }
 
@@ -129,21 +129,24 @@ function libraries_cdn_cron() {
 /**
  * Function to add a library to a page. This is under heavy development.
  *
- * @param string $library
- *   The library name.
  * @param mixed $cdns
  *   The cdn name or an array of CDN name.
+ * @param string $library
+ *   The library name.
  * @param null $version
  *   The version of the library. If not set it will detect the latest.
  * @param array $configuration
  *   The configuration to pass to the object.
  */
-function libraries_cdn_add($library, $cdns = array(), $version = NULL, array $configuration = array()) {
+function libraries_cdn_add($cdns = array(), $library = NULL, $version = NULL, array $configuration = array()) {
+  if (!isset($library)) {
+    return;
+  }
   if (is_string($cdns)) {
     $cdns = (array) $cdns;
   }
 
-  if (empty($cdns)) {
+  if (empty($cdns) || in_array('*', $cdns)) {
     $cdns = \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN();
   }
 
@@ -163,12 +166,14 @@ function libraries_cdn_add($library, $cdns = array(), $version = NULL, array $co
     }
     if (\Drupal\libraries_cdn\LibrariesCDN::isAvailableCDN($cdn)) {
       \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library, $configuration);
+
       if (\Drupal\libraries_cdn\LibrariesCDN::isAvailable()) {
 
         $user_version = $version ? $version : \Drupal\libraries_cdn\LibrariesCDN::getLatestVersion();
 
-        if ($cache = cache_get($library . ':' . $cdn . ':' . $user_version)) {
+        if ($cache = cache_get($cdn . ':' . $library . ':' . $user_version)) {
           $results = $cache->data;
+          $found = TRUE;
         }
         else {
           $files = \Drupal\libraries_cdn\LibrariesCDN::getFiles();
@@ -184,7 +189,7 @@ function libraries_cdn_add($library, $cdns = array(), $version = NULL, array $co
               $results[$ext][] = $file;
               $found = TRUE;
             };
-            $cache_id = $library . ':' . $cdn . ':' . $user_version;
+            $cache_id = $cdn . ':' . $library . ':' . $user_version;
             cache_set($cache_id, $results);
           }
         }
@@ -195,13 +200,27 @@ function libraries_cdn_add($library, $cdns = array(), $version = NULL, array $co
   if (!empty($results)) {
     foreach ($results as $type => $files) {
       foreach ($files as $file) {
-        if ($type == 'js') {
-          drupal_add_js($file);
-        }
-        if ($type == 'css') {
-          drupal_add_css($file);
-        }
+        $options = array(
+          'type' => 'external',
+        );
+        call_user_func_array('drupal_add_' . $type, array($file, $options));
       }
     }
   }
+}
+
+/**
+ * Use the #attached key of a render array to attach any cdn libraries, just
+ * like any other regular library.
+ *
+ * Example:
+ *
+ *  '#attached' => array(
+ *    'libraries_cdn_load' => array(
+ *      array('ol3', 'cdnjs', '3.8.2'),
+ *    ),
+ *  ),
+ */
+function libraries_cdn_load() {
+  call_user_func_array('libraries_cdn_add', func_get_args());
 }
