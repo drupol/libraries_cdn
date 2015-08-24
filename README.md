@@ -123,14 +123,14 @@ Use the ```#attached``` key of a render array to attach any CDN libraries, just 
 ```
 $form['#attached'] = array(
  'libraries_cdn_load' => array(
-   array('ol3', 'cdnjs', '3.8.2'),
+   array('cdnjs', 'ol3', '3.8.2'),
  ),
 );
 ```
 
 The parameters are:
+- String, required: The CDN to get the library from. (use ```*``` to query all CDN available and use the first who has it)
 - String, required: The library name 
-- String, optional: The CDN to get the library from. (use ```*``` to query all CDN available and use the first who has it)
 - String, optional: The version. Will get the latest version if omitted.
 
 # Extend the module
