@@ -4,7 +4,7 @@
  * Interface CDNBaseInterface.
  */
 
-namespace Drupal\libraries_cdn\Types;
+namespace Drupal\libraries_cdn\Type;
 use Drupal\Component\Plugin\PluginInspectionInterface;
 
 /**

@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/drupol/libraries_cdn.svg)](https://travis-ci.org/drupol/libraries_cdn)
+[![Coverage Status](https://coveralls.io/repos/drupol/libraries_cdn/badge.svg?branch=phpunit-tests&service=github)](https://coveralls.io/github/drupol/libraries_cdn?branch=phpunit-tests)
+
 # Libraries CDN API
 
 Libraries CDN API is an API module to retrieve data from CDN like CDNJS or jsDelivr.
