@@ -5,7 +5,7 @@
  */
 
 namespace Drupal\libraries_cdn;
-use Drupal\libraries_cdn\Types\CDNBaseInterface;
+use Drupal\libraries_cdn\Type\CDNBaseInterface;
 
 /**
  * Class LibrariesCDN.
@@ -17,6 +17,9 @@ class LibrariesCDN extends \Drupal {
 
   /**
    * Check if a CDN plugin is available.
+   *
+   * @param string $plugin_id
+   *   The CDN Plugin ID, defined by the key 'id' in the plugins's annotation.
    *
    * @return bool
    *   TRUE if the plugin is available, otherwise, FALSE.
@@ -103,7 +106,7 @@ class LibrariesCDN extends \Drupal {
   /**
    * Return the CDN Plugin object.
    *
-   * @return \Drupal\libraries_cdn\Types\CDNBaseInterface
+   * @return \Drupal\libraries_cdn\Type\CDNBaseInterface
    *   The CDN Plugin object.
    */
   public static function getPlugin() {

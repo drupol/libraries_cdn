@@ -263,11 +263,11 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
       foreach ($files as $file) {
         if (!$this->isLocalAvailable($file, $version)) {
           $directory = $this->getLocalDirectoryName($version);
-          file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
-          file_prepare_directory($directory, FILE_MODIFY_PERMISSIONS);
+          $this->drupal7->file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+          $this->drupal7->file_prepare_directory($directory, FILE_MODIFY_PERMISSIONS);
           $request = $this->request($this->getScheme() . ':' . $file);
           if ($request['code'] == 200) {
-            file_unmanaged_save_data($request['data'], $this->getLocalFileName($file, $version), FILE_EXISTS_REPLACE);
+            $this->drupal7->file_unmanaged_save_data($request['data'], $this->getLocalFileName($file, $version), FILE_EXISTS_REPLACE);
           }
         }
       }
