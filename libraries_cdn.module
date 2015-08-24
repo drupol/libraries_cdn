@@ -166,6 +166,12 @@ function libraries_cdn_add($cdns = array(), $library = NULL, $version = NULL, ar
 
   $found = FALSE;
 
+  // Speed improvement, check the cache before going to the loop.
+  if ($cache = cache_get(implode('', $cdns) . ':' . $library . ':' . $version)) {
+    $results = $cache->data;
+    $cdns = array();
+  }
+
   foreach ($cdns as $cdn) {
     if ($found == TRUE) {
       continue;
@@ -213,16 +219,17 @@ function libraries_cdn_add($cdns = array(), $library = NULL, $version = NULL, ar
 }
 
 /**
- * Use the #attached key of a render array to attach any cdn libraries,
- * just like any other regular libraries.
+ * Use the #attached key of a render array to attach a cdn libraries.
  *
- * Example:
+ * See drupal_process_attached() for more information on how to use it.
  *
- *  '#attached' => array(
+ * Code example:
+ *
+ *  $form['#attached'] = array(
  *    'libraries_cdn_load' => array(
  *      array('ol3', 'cdnjs', '3.8.2'),
  *    ),
- *  ),
+ *  );
  */
 function libraries_cdn_load() {
   call_user_func_array('libraries_cdn_add', func_get_args());
