@@ -227,7 +227,7 @@ function libraries_cdn_add($cdns = array(), $library = NULL, $version = NULL, ar
  *
  *  $form['#attached'] = array(
  *    'libraries_cdn_load' => array(
- *      array('ol3', 'cdnjs', '3.8.2'),
+ *      array('cdnjs', 'ol3', '3.8.2'),
  *    ),
  *  );
  */
