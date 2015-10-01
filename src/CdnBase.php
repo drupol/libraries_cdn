@@ -5,7 +5,7 @@
  */
 
 namespace Drupal\libraries_cdn;
-use Drupal\Component\Plugin\PluginBase;
+use Drupal\Core\Plugin\PluginBase;
 
 /**
  * Class CdnBase.

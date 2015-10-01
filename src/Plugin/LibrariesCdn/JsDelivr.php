@@ -6,7 +6,6 @@
 
 namespace Drupal\libraries_cdn\Plugin\LibrariesCdn;
 
-use Drupal\Core\Http\ClientFactory;
 use Drupal\libraries_cdn\Annotation\LibrariesCdn;
 use Drupal\libraries_cdn\CdnBase;
 use Drupal\libraries_cdn\CdnBaseInterface;
