@@ -1,3 +1,4 @@
-parameters:
-  annotated_plugins_auto_discovery.libraries_cdn:
-    - { owner: 'libraries_cdn', type: 'LibrariesCDN', directory: 'Plugin/LibrariesCDN', class: 'Drupal\libraries_cdn\Component\Annotation\LibrariesCDNPlugin'}
+services:
+  plugin.manager.librariescdn:
+    class: Drupal\libraries_cdn\LibrariesCdnManager
+    parent: default_plugin_manager

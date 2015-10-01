@@ -1,16 +1,17 @@
 <?php
 /**
  * @file
- * Contains LibrariesCDN.
+ * Contains LibrariesCdn.
  */
 
 namespace Drupal\libraries_cdn;
-use Drupal\libraries_cdn\Type\CDNBaseInterface;
+
+use Drupal\libraries_cdn\CdnBaseInterface;
 
 /**
- * Class LibrariesCDN.
+ * Class LibrariesCdn.
  */
-class LibrariesCDN extends \Drupal {
+class LibrariesCdn {
 
   /* @var CDNBaseInterface $plugin */
   protected static $plugin;
@@ -24,8 +25,8 @@ class LibrariesCDN extends \Drupal {
    * @return bool
    *   TRUE if the plugin is available, otherwise, FALSE.
    */
-  public static function isAvailableCDN($plugin_id) {
-    return in_array($plugin_id, self::getAvailableCDN());
+  public static function isAvailableCdn($plugin_id) {
+    return in_array($plugin_id, self::getAvailableCdn());
   }
 
   /**
@@ -34,9 +35,9 @@ class LibrariesCDN extends \Drupal {
    * @return array
    *   List of CDN plugins available.
    */
-  public static function getAvailableCDN() {
+  public static function getAvailableCdn() {
     $options = array();
-    $service_basename = 'libraries_cdn.LibrariesCDN';
+    $service_basename = 'plugin.manager.librariescdn';
     foreach (\Drupal::service($service_basename)->getDefinitions() as $service => $data) {
       $name = isset($data['label']) ? $data['label'] : $data['id'];
       $options[$data['id']] = $name;
@@ -56,7 +57,7 @@ class LibrariesCDN extends \Drupal {
    */
   public static function find($library) {
     $providers = array();
-    foreach (self::getAvailableCDN() as $cdn) {
+    foreach (self::getAvailableCdn() as $cdn) {
       self::setPlugin($cdn, $library);
       if (self::isAvailable()) {
         $providers[] = $cdn;
@@ -76,7 +77,7 @@ class LibrariesCDN extends \Drupal {
    */
   public static function search($library) {
     $providers = array();
-    foreach (self::getAvailableCDN() as $cdn) {
+    foreach (self::getAvailableCdn() as $cdn) {
       self::setPlugin($cdn);
       $search = self::$plugin->search($library);
       if (!empty($search)) {
@@ -95,8 +96,8 @@ class LibrariesCDN extends \Drupal {
    *   The library to work with.
    */
   public static function setPlugin($plugin, $library = NULL, $configuration = array()) {
-    /* @var CDNBaseInterface $plugin */
-    $plugin = self::service('libraries_cdn.LibrariesCDN')->createInstance($plugin, $configuration);
+    /* @var CdnBaseInterface $plugin */
+    $plugin = \Drupal::service('plugin.manager.librariescdn')->createInstance($plugin, $configuration);
     if ($library) {
       $plugin->setLibrary($library);
     }
@@ -106,7 +107,7 @@ class LibrariesCDN extends \Drupal {
   /**
    * Return the CDN Plugin object.
    *
-   * @return \Drupal\libraries_cdn\Type\CDNBaseInterface
+   * @return \Drupal\libraries_cdn\CdnBaseInterface
    *   The CDN Plugin object.
    */
   public static function getPlugin() {

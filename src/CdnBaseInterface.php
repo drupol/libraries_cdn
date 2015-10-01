@@ -1,16 +1,16 @@
 <?php
 /**
  * @file
- * Interface CDNBaseInterface.
+ * Interface CdnBaseInterface.
  */
 
-namespace Drupal\libraries_cdn\Type;
+namespace Drupal\libraries_cdn;
 use Drupal\Component\Plugin\PluginInspectionInterface;
 
 /**
- * Interface CDNBaseInterface.
+ * Interface CdnBaseInterface.
  */
-interface CDNBaseInterface extends PluginInspectionInterface {
+interface CdnBaseInterface extends PluginInspectionInterface {
   /**
    * Check if library is available.
    *

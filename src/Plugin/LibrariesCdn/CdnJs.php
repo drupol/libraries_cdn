@@ -4,29 +4,25 @@
  * Plugin: CDNJS.
  */
 
-namespace Drupal\libraries_cdn\Plugin\LibrariesCDN;
+namespace Drupal\libraries_cdn\Plugin\LibrariesCdn;
 
-use Drupal\Component\Plugin\PluginBase;
-use Drupal\libraries_cdn\Component\Annotation\LibrariesCDNPlugin;
-use Drupal\libraries_cdn\Type\CDNBase;
-use Drupal\service_container\Legacy\Drupal7;
+use Drupal\libraries_cdn\Annotation\LibrariesCdn;
+use Drupal\libraries_cdn\CdnBase;
+use Drupal\libraries_cdn\CdnBaseInterface;
 
 /**
- * Class CDNJS.
+ * Class CdnJs.
  *
- * @LibrariesCDNPlugin(
+ * @LibrariesCdn(
  *  id = "cdnjs",
- *  description = "CDNJS Integration",
- *  arguments = {
- *    "@drupal7"
- *  }
+ *  description = "CDNJS Integration"
  * )
  */
-class CDNJS extends CDNBase {
+class CdnJs extends CdnBase implements CdnBaseInterface {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, Drupal7 $drupal7) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
     if (empty($configuration['urls'])) {
       $configuration['urls'] = array();
     }
@@ -39,7 +35,7 @@ class CDNJS extends CDNBase {
       'convertFiles' => '//cdnjs.cloudflare.com/ajax/libs/%s/%s/',
     );
 
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $drupal7);
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
 
   /**

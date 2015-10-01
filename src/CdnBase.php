@@ -1,22 +1,21 @@
 <?php
 /**
  * @file
- * Class CDNBase.
+ * Class CdnBase.
  */
 
-namespace Drupal\libraries_cdn\Type;
+namespace Drupal\libraries_cdn;
 use Drupal\Component\Plugin\PluginBase;
-use Drupal\service_container\Legacy\Drupal7;
 
 /**
- * Class CDNBase.
+ * Class CdnBase.
  */
-abstract class CDNBase extends PluginBase implements CDNBaseInterface {
+abstract class CdnBase extends PluginBase implements CdnBaseInterface {
+
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, Drupal7 $drupal7) {
-    $this->drupal7 = $drupal7;
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
 
@@ -108,7 +107,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function request($url) {
-    return (array) $this->drupal7->drupal_http_request($url, (array) $this->getConfiguration('request'));
+    return \Drupal::httpClient()->get($url);
   }
 
   /**
@@ -117,10 +116,10 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   public function query($url) {
     list($scheme, $url) = explode('://', $url, 2);
     $request = $this->request(sprintf('%s://' . $url, $this->getScheme($scheme), $this->getLibrary()));
-    if ($request['code'] != 200) {
+    if ($request->getStatusCode() != 200) {
       return array();
     }
-    return json_decode($request['data'], TRUE);
+    return json_decode($request->getBody()->getContents(), TRUE);
   }
 
   /**

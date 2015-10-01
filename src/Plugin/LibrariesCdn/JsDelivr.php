@@ -4,29 +4,26 @@
  * Plugin: jsDelivr.
  */
 
-namespace Drupal\libraries_cdn\Plugin\LibrariesCDN;
+namespace Drupal\libraries_cdn\Plugin\LibrariesCdn;
 
-use Drupal\Component\Plugin\PluginBase;
-use Drupal\libraries_cdn\Component\Annotation\LibrariesCDNPlugin;
-use Drupal\libraries_cdn\Type\CDNBase;
-use Drupal\service_container\Legacy\Drupal7;
+use Drupal\Core\Http\ClientFactory;
+use Drupal\libraries_cdn\Annotation\LibrariesCdn;
+use Drupal\libraries_cdn\CdnBase;
+use Drupal\libraries_cdn\CdnBaseInterface;
 
 /**
- * Class JSDelivr.
+ * Class JsDelivr.
  *
- * @LibrariesCDNPlugin(
+ * @LibrariesCdn(
  *  id = "jsdelivr",
- *  description = "jsDelivr Integration",
- *  arguments = {
- *    "@drupal7"
- *  }
+ *  description = "jsDelivr Integration"
  * )
  */
-class JSDelivr extends CDNBase {
+class JSDelivr extends CdnBase implements CdnBaseInterface {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, Drupal7 $drupal7) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
     if (empty($configuration['urls'])) {
       $configuration['urls'] = array();
     }
@@ -39,7 +36,7 @@ class JSDelivr extends CDNBase {
       'convertFiles' => '//cdn.jsdelivr.net/%s/%s/',
     );
 
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $drupal7);
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
 
   /**
