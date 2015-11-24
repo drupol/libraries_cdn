@@ -35,7 +35,7 @@ class CDNJS extends CDNBase {
       'getInformation' => 'http://api.cdnjs.com/libraries/%s',
       'getVersions' => 'http://api.cdnjs.com/libraries/%s',
       'getFiles' => 'http://api.cdnjs.com/libraries/%s',
-      'search' => 'http://api.cdnjs.com/libraries?search=%s',
+      'search' => 'http://api.cdnjs.com/libraries?search=%s&fields=version,assets,description',
       'convertFiles' => '//cdnjs.cloudflare.com/ajax/libs/%s/%s/',
     );
 

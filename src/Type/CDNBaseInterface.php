@@ -173,7 +173,7 @@ interface CDNBaseInterface extends PluginInspectionInterface {
    * @param array $versions
    *   The library versions to copy.
    */
-  public function getLocalCopy(array $versions = array());
+  public function getLocalCopy(array $versions = array(), array $indexes = array());
 
   /**
    * Set default scheme for an url.

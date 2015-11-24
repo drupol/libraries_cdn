@@ -136,15 +136,9 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   public function search($library) {
     $this->setLibrary($library);
 
-    if (!$this->isAvailable()) {
-      return array();
-    }
-
     $data = $this->formatData(__FUNCTION__, $this->query($this->getURL(__FUNCTION__)));
 
-    return array_map(function($v) {
-      return $v['name'];
-    }, $data);
+    return $data;
   }
 
   /**
@@ -250,7 +244,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   /**
    * {@inheritdoc}
    */
-  public function getLocalCopy(array $versions = array()) {
+  public function getLocalCopy(array $versions = array(), array $indexes = array()) {
     $assets = $this->getFiles();
 
     if (!empty($versions)) {
@@ -258,14 +252,19 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
     }
 
     foreach ($assets as $version => $files) {
-      foreach ($files as $file) {
+      if (empty($indexes)) {
+        $indexes = array_keys(array_values($files));
+      }
+      foreach ($files as $index => $file) {
         if (!$this->isLocalAvailable($file, $version)) {
-          $directory = $this->getLocalDirectoryName($version);
-          $this->drupal7->file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
-          $this->drupal7->file_prepare_directory($directory, FILE_MODIFY_PERMISSIONS);
-          $request = $this->request($this->getScheme() . ':' . $file);
-          if ($request['code'] == 200) {
-            $this->drupal7->file_unmanaged_save_data($request['data'], $this->getLocalFileName($file, $version), FILE_EXISTS_REPLACE);
+          if (in_array($index, $indexes)) {
+            $directory = $this->getLocalDirectoryName($version);
+            $this->drupal7->file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+            $this->drupal7->file_prepare_directory($directory, FILE_MODIFY_PERMISSIONS);
+            $request = $this->request($this->getScheme() . ':' . $file);
+            if ($request['code'] == 200) {
+              $this->drupal7->file_unmanaged_save_data($request['data'], $this->getLocalFileName($file, $version), FILE_EXISTS_REPLACE);
+            }
           }
         }
       }

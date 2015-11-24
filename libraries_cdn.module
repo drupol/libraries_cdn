@@ -6,6 +6,18 @@
  */
 
 /**
+ * Implements hook_permission().
+ */
+function libraries_cdn_permission() {
+  return array(
+    'administer libraries_cdn' => array(
+      'title' => t('Administer libraries_cdn'),
+      'description' => t('Perform administration tasks for Libraries CDN.'),
+    ),
+  );
+}
+
+/**
  * Implements hook_libraries_info_alter().
  *
  * To get into this hook, add a new key to the library definition in

@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function libraries_cdn_ui_menu() {
+  return array(
+    'admin/reports/libraries/cdn' => array(
+      'type' => MENU_LOCAL_ACTION,
+      'title' => 'Libraries CDN API',
+      'page callback' => 'libraries_cdn_ui_admin_page_callback',
+      'access arguments' => array('administer libraries_cdn'),
+      'file' => 'libraries_cdn_ui.admin.inc',
+    ),
+  );
+}
