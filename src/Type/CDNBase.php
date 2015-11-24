@@ -177,9 +177,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
 
     $data = $this->formatData(__FUNCTION__, $this->query($this->getURL(__FUNCTION__)));
 
-    return array_filter(array_map(function($v) {
-      return isset($v['version']) ? $v['version'] : NULL;
-    }, $data));
+    return array_filter($data);
   }
 
   /**

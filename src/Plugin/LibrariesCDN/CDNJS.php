@@ -63,4 +63,19 @@ class CDNJS extends CDNBase {
     }
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getVersions() {
+    if (!$this->isAvailable()) {
+      return array();
+    }
+
+    $data = $this->formatData(__FUNCTION__, $this->query($this->getURL(__FUNCTION__)));
+
+    return array_filter(array_map(function($v) {
+      return isset($v['version']) ? $v['version'] : NULL;
+    }, $data));
+  }
+
 }
