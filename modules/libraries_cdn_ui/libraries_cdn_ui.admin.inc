@@ -46,7 +46,7 @@ function libraries_cdn_ui_browser($form, $form_state) {
     foreach($results as $cdn => $data) {
       $form['libraries_cdn_results']['results'][$cdn] = array(
         '#type' => 'fieldset',
-        '#title' => 'Results on ' . $cdn,
+        '#title' => 'Results on ' . $cdn . ' (' . count($data) . ')',
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
@@ -59,9 +59,14 @@ function libraries_cdn_ui_browser($form, $form_state) {
 
         $form['libraries_cdn_results']['results'][$cdn][$id] = array(
           '#type' => 'fieldset',
-          '#collapsible' => FALSE,
+          '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
           '#title' => $library['name'],
           '#description' => $library['description'],
+        );
+
+        $form['libraries_cdn_results']['results'][$cdn][$id]['files'] = array(
+          '#weight' => 5,
         );
 
         $versions = array();
@@ -70,8 +75,7 @@ function libraries_cdn_ui_browser($form, $form_state) {
           $versions[] = $asset['version'];
 
           $form['libraries_cdn_results']['results'][$cdn][$id]['files']['version-' . $asset['version']] = array(
-            '#type' => 'fieldset',
-            '#weight' => 5,
+            '#type' => 'container',
             '#title' => 'Files for version ' . $asset['version'],
             '#states' => array(
               'visible' => array(
@@ -133,7 +137,7 @@ function libraries_cdn_ui_browser($form, $form_state) {
   return $form;
 }
 
-/**
+/**l
  * Submit handler of the form.
  *
  * @param $form
@@ -166,45 +170,12 @@ function libraries_cdn_ui_browser_submit($form, &$form_state) {
   }
   $files = array_filter($files);
 
-  /*
-  $libraries = variable_get('libraries_cdn_libraries', array());
-  $data = array();
-  foreach($files as $id) {
-    list($cdn,$library,$version,$index) = explode(':', $id);
-    $data[$cdn][$library][$version][] = array('index' => $index);
-  }
-
-  foreach($data as $cdn) {
-    \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn);
-    $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
-    foreach($cdn as $library) {
-      $plugin->setLibrary($library);
-      $information = $plugin->getInformation();
-      foreach($library as $versions) {
-        $files = array();
-        foreach($versions as $version => $file) {
-          $ext = pathinfo($file, PATHINFO_EXTENSION);
-          $files[$ext][] = $file;
-        }
-        $libraries[$information['name']] = array(
-          'name' => $information['name'],
-          'library path' => $plugin->getLocalDirectoryName($version),
-          'description' => $information['description'],
-          'files' => $files
-        );
-      }
-    }
-  }
-
-  $library = $plugin->getInformation();
-  $files = $plugin->getFiles(array($version));
-  */
-
   // Build the operations array for the batch.
   $operations = array();
   foreach($files as $id) {
     $operations[] = array('_libraries_cdn_ui_download_files', array($id));
   }
+  $operations[] = array('_libraries_cdn_ui_build_variable', array($files));
 
   $batch = array(
     'title' => t('Libraries CDN API: Downloading files'),
@@ -232,4 +203,39 @@ function _libraries_cdn_ui_download_files($id) {
   \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library);
   $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
   $plugin->getLocalCopy(array($version), array($index));
+}
+
+function _libraries_cdn_ui_build_variable($files) {
+  $data = array();
+
+  foreach($files as $id) {
+    list($cdn,$library,$version,$index) = explode(':', $id);
+    $data[$cdn][$library][$version][] = array('index' => $index);
+  }
+
+  $libraries = variable_get('libraries_cdn_libraries', array());
+  foreach($data as $cdn => $libraries) {
+    \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn);
+    $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
+    foreach($libraries as $library_name => $library) {
+      $plugin->setLibrary($library_name);
+      $information = $plugin->getInformation();
+      foreach($library as $version => $asset) {
+        $files = array();
+        $library_files = $plugin->getFiles(array($version));
+        $library_files = array_shift($library_files);
+        foreach($asset as $file) {
+          $ext = pathinfo($library_files[$file['index']], PATHINFO_EXTENSION);
+          $files[$ext][] = drupal_realpath($plugin->getLocalFileName($library_files[$file['index']], $version));
+        }
+        $libraries[$information['name']] = array(
+          'name' => $information['name'],
+          'library path' => drupal_realpath($plugin->getLocalDirectoryName($version)),
+          'version' => $version,
+          'files' => $files
+        );
+      }
+    }
+  }
+  variable_set('libraries_cdn_libraries', $libraries);
 }

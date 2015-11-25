@@ -6,6 +6,13 @@
  */
 
 /**
+ * Implements hook_libraries_info().
+ */
+function libraries_cdn_libraries_info() {
+  return variable_get('libraries_cdn_libraries', array());
+}
+
+/**
  * Implements hook_permission().
  */
 function libraries_cdn_permission() {
