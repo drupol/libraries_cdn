@@ -5,6 +5,13 @@
  */
 function libraries_cdn_ui_menu() {
   return array(
+    'libraries_cdn/autocomplete' => array(
+      'type' => MENU_CALLBACK,
+      'title' => 'Libraries CDN API Autocomplete',
+      'page callback' => 'libraries_cdn_ui_library_autocomplete_callback',
+      'access arguments' => array('administer libraries_cdn'),
+      'file' => 'libraries_cdn_ui.admin.inc',
+    ),
     'admin/reports/libraries/cdn' => array(
       'type' => MENU_LOCAL_ACTION,
       'title' => 'Libraries CDN API',

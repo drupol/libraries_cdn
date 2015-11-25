@@ -8,133 +8,306 @@ function libraries_cdn_ui_admin_page_callback() {
   return drupal_render($form);
 }
 
-/**
- * Form.
- */
-function libraries_cdn_ui_browser($form, $form_state) {
-  $form['libraries_cdn'] = array(
-    '#type' => 'fieldset',
-    '#title' => 'CDN related options',
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
+function libraries_cdn_ui_browser($form, &$form_state) {
+  if (!isset($form_state['stage'])) $form_state['stage'] = 'step1';
+  $form = array();
+
+  $form_state['stage'] = isset($form_state['stage']) ? $form_state['stage'] : 1;
+
+  $form_stages = array(
+    'step1' => 1,
+    'step2' => 2,
+    'step3' => 3,
+    'step4' => 4,
   );
 
-  $cdns = implode(', ', \Drupal\libraries_cdn\LibrariesCDN::getAvailableCDN());
-  $form['libraries_cdn']['search'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Search a library',
-    '#description' => 'Search for a library in each the available CDN: ' . $cdns,
-    '#default_value' => isset($form_state['input']['search']) ? $form_state['input']['search'] : ''
+  if (isset($form_stages[$form_state['stage']])) {
+    $current_step = $form_stages[$form_state['stage']];
+  }
+  else {
+    $current_step = 1;
+  }
+
+  $stages = array(
+    1 => array('data' => '1. Choose the library'),
+    2 => array('data' => '2. Select the version and files'),
+    3 => array('data' => '3. Download the files'),
+    4 => array('data' => '4. Finishing'),
   );
 
-  $form['libraries_cdn']['buttons']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => 'Search',
+  $stages[$current_step]['class'] = array('active');
+
+  $form['header'] = array(
+    '#theme' => 'item_list',
+    '#title' => 'Steps (' . $current_step .')',
+    '#items' => $stages,
   );
 
-  $value = variable_get('libraries_cdn_libraries', array());
+  switch ($form_state['stage']) {
 
-  $form['libraries_cdn_results'] = array(
-    '#type' => 'container',
-    '#tree' => TRUE,
-    '#validated' => TRUE,
-  );
+    case 'step1':
+      return libraries_cdn_ui_browser_step1($form, $form_state);
+      break;
 
-  if (isset($form_state['storage']['results'])) {
-    $results = $form_state['storage']['results'];
+    case 'step2':
+      return libraries_cdn_ui_browser_step2($form, $form_state);
+      break;
 
-    foreach($results as $cdn => $data) {
-      $form['libraries_cdn_results']['results'][$cdn] = array(
-        '#type' => 'fieldset',
-        '#title' => 'Results on ' . $cdn . ' (' . count($data) . ')',
-        '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
-      );
+    case 'step3':
+      return libraries_cdn_ui_browser_step3($form, $form_state);
+      break;
 
-      foreach($data as $library) {
-        $id = $cdn . ':' . $library['name'];
-        \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library['name']);
-        $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
-        $files = $plugin->getFiles();
-
-        $form['libraries_cdn_results']['results'][$cdn][$id] = array(
-          '#type' => 'fieldset',
-          '#collapsible' => TRUE,
-          '#collapsed' => TRUE,
-          '#title' => $library['name'],
-          '#description' => $library['description'],
-        );
-
-        $form['libraries_cdn_results']['results'][$cdn][$id]['files'] = array(
-          '#weight' => 5,
-        );
-
-        $versions = array();
-        foreach($library['assets'] as $asset) {
-          $version_files = $files[$asset['version']];
-          $versions[] = $asset['version'];
-
-          $form['libraries_cdn_results']['results'][$cdn][$id]['files']['version-' . $asset['version']] = array(
-            '#type' => 'container',
-            '#title' => 'Files for version ' . $asset['version'],
-            '#states' => array(
-              'visible' => array(
-                ":input[id='$id-versions']" => array('value' => $asset['version']),
-              ),
-            ),
-          );
-
-          $header = array(
-            'url' => 'File',
-            'local' => 'Local',
-            'isLocal' => 'Available'
-          );
-
-          $options = array();
-          foreach($version_files as $index => $file) {
-            $available_locally = $plugin->isLocalAvailable($file, $asset['version']) ? 'yes' : 'no';
-            $local = $plugin->getLocalFileName($file, $asset['version']);
-
-            $options[$id.':'.$asset['version'].':'.$index] = array(
-              'url' => $file,
-              'local' => $local,
-              'isLocal' => $available_locally
-            );
-          }
-
-          $form['libraries_cdn_results']['results'][$cdn][$id]['files']['version-' . $asset['version']]['files'] = array(
-            '#type' => 'tableselect',
-            '#header' => $header,
-            '#options' => $options,
-            '#multiple' => TRUE,
-            '#empty' => t('No file found'),
-          );
-        }
-
-        $form['libraries_cdn_results']['results'][$cdn][$id]['versions'] = array(
-          '#type' => 'select',
-          '#weight' => 4,
-          '#title' => 'Versions available',
-          '#attributes' => array(
-            'id' => $id.'-versions',
-          ),
-          '#options' => array_combine(array_values($versions), array_values($versions))
-        );
-
-      }
-    }
-
-    $form['libraries_cdn_results']['buttons']['download'] = array(
-      '#type' => 'submit',
-      '#value' => 'Download selected files'
-    );
-    $form['libraries_cdn_results']['buttons']['delete'] = array(
-      '#type' => 'submit',
-      '#value' => 'Delete selected files'
-    );
+    case 'step4':
+      return libraries_cdn_ui_browser_step4($form, $form_state);
+      break;
   }
 
   return $form;
+}
+
+function libraries_cdn_ui_browser_step1($form, &$form_state) {
+  $form['library'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Library',
+    '#autocomplete_path' => 'libraries_cdn/autocomplete',
+    '#default_value' => $form_state['values']['library'],
+  );
+
+  $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next')
+  );
+
+  return $form;
+}
+
+function libraries_cdn_ui_library_autocomplete_callback($search) {
+  $matches = array();
+  $search_result = \Drupal\libraries_cdn\LibrariesCDN::search($search);
+
+  foreach($search_result as $cdn => $data) {
+    foreach($data as $name => $library) {
+      $matches[$cdn . ':' . $library['name']] = str_ireplace($search, '<strong>'. $search . '</strong>', $library['name']) . ' (' . $cdn .')';
+    }
+  }
+
+  drupal_json_output($matches);
+}
+
+function libraries_cdn_ui_browser_step2($form, &$form_state) {
+  list($cdn, $library) = explode(':', $form_state['values']['library'], 2);
+
+  $form['library'] = array(
+    '#type' => 'value',
+    '#default_value' => $form_state['values']['library'],
+  );
+
+  $id = $cdn . ':' . $library;
+  \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library);
+  $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
+  $files = $plugin->getFiles();
+
+  $form['version'] = array(
+    '#type' => 'select',
+    '#weight' => 4,
+    '#title' => 'Versions available',
+    '#attributes' => array(
+      'id' => $id.'-version',
+    ),
+    '#options' => array_combine(array_keys($files), array_keys($files)),
+    '#default_value' => $form_state['values']['version']
+  );
+
+  $form['files'] = array(
+    '#weight' => 5,
+  );
+
+  foreach($files as $version => $assets) {
+    $version_files = $files[$version];
+
+    $form['files'][$version] = array(
+      '#type' => 'container',
+      '#title' => 'Files for version ' . $version,
+      '#states' => array(
+        'visible' => array(
+          ":input[id='$id-version']" => array('value' => $version),
+        ),
+      ),
+    );
+
+    $header = array(
+      'url' => 'File',
+      'local' => 'Local',
+      'isLocal' => 'Available'
+    );
+
+    $options = array();
+    foreach($version_files as $index => $file) {
+      $available_locally = $plugin->isLocalAvailable($file, $version) ? 'yes' : 'no';
+      $local = $plugin->getLocalFileName($file, $version);
+
+      $options[$id.':'.$version.':'.$index] = array(
+        'url' => $file,
+        'local' => $local,
+        'isLocal' => $available_locally
+      );
+    }
+
+    dpm($form_state);
+
+    $form['files'][$version]['files'] = array(
+      '#type' => 'tableselect',
+      '#header' => $header,
+      '#options' => $options,
+      '#multiple' => TRUE,
+      '#empty' => t('No file found'),
+      '#required' => TRUE,
+      '#validated' => TRUE,
+      '#default_value' => drupal_map_assoc($form_state['values']['files']),
+    );
+  }
+
+  $form['back'] = array(
+    '#type' => 'submit',
+    '#value' => t('Back')
+  );
+
+  $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next')
+  );
+
+  return $form;
+}
+
+function libraries_cdn_ui_browser_step2_version_callback($form, $form_state) {
+  return $form['files'];
+}
+
+function libraries_cdn_ui_browser_step3($form, &$form_state) {
+
+  $files = array_filter($form_state['values']['files']);
+
+  $form['library'] = array(
+    '#type' => 'value',
+    '#default_value' => $form_state['values']['library'],
+  );
+
+  $form['version'] = array(
+    '#type' => 'value',
+    '#default_value' => $form_state['values']['version'],
+  );
+
+  $form['files'] = array(
+    '#type' => 'value',
+    '#default_value' => $form_state['values']['files'],
+  );
+
+  $library = _libraries_cdn_ui_build_variable($files);
+
+  $form['textarea'] = array(
+    '#type' => 'textarea',
+    '#default_value' => print_r($library, 1)
+  );
+
+  // Build the operations array for the batch.
+  $operations = array();
+  foreach($files as $id) {
+    $operations[] = array('_libraries_cdn_ui_download_files', array($id));
+  }
+  $operations[] = array('_libraries_cdn_ui_build_variable', array($files));
+
+  $batch = array(
+    'title' => t('Libraries CDN API: Downloading files'),
+    'operations' => $operations,
+    'init_message' => t('Initializing...'),
+    'progress_message' => t('Operation @current out of @total.'),
+    'error_message' => t('Found some error.'),
+    'file' => drupal_get_path('module', 'libraries_cdn_ui') . '/libraries_cdn_ui.admin.inc'
+  );
+
+  // Start the batch if there are files to download.
+  if (!empty($files)) {
+    //batch_set($batch);
+  }
+
+  $form['back'] = array(
+    '#type' => 'submit',
+    '#value' => t('Back')
+  );
+
+  $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next')
+  );
+
+  return $form;
+}
+
+function libraries_cdn_ui_browser_step4($form, &$form_state) {
+  $form['back'] = array(
+    '#type' => 'submit',
+    '#value' => t('Back')
+  );
+
+  $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit')
+  );
+
+  return $form;
+}
+
+function libraries_cdn_ui_browser_submit($form, &$form_state) {
+
+  switch ($form_state['stage']) {
+    default:
+      $form_state['multistep_values'][$form_state['stage']] = $form_state['values'];
+      $form_state['new_stage'] = libraries_cdn_ui_browser_next_stage($form, $form_state);
+      break;
+
+  }
+  if (isset($form_state['complete'])) drupal_goto('complete-page');
+
+  if ($form_state['triggering_element']['#value'] == 'Back') {
+    $form_state['new_stage'] = libraries_cdn_ui_browser_previous_stage($form, $form_state);
+  }
+
+  if (isset($form_state['multistep_values']['form_build_id'])) {
+    $form_state['values']['form_build_id'] = $form_state['multistep_values']['form_build_id'];
+  }
+  $form_state['multistep_values']['form_build_id'] = $form_state['values']['form_build_id'];
+  $form_state['stage'] = $form_state['new_stage'];
+  $form_state['rebuild'] = TRUE;
+
+}
+
+function libraries_cdn_ui_browser_next_stage($form, &$form_state) {
+  switch ($form_state['stage']) {
+    case 'step1':
+      return 'step2';
+      break;
+    case 'step2':
+      return 'step3';
+      break;
+    case 'step3':
+      return 'step4';
+      break;
+  }
+}
+
+function libraries_cdn_ui_browser_previous_stage($form, &$form_state) {
+  switch ($form_state['stage']) {
+    case 'step2':
+      return 'step1';
+      break;
+    case 'step3':
+      return 'step2';
+      break;
+    case 'step4':
+      return 'step3';
+      break;
+  }
 }
 
 /**l
@@ -143,7 +316,7 @@ function libraries_cdn_ui_browser($form, $form_state) {
  * @param $form
  * @param $form_state
  */
-function libraries_cdn_ui_browser_submit($form, &$form_state) {
+function libraries_cdn_ui_browser_old_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
   $form_state['values'] += array('libraries_cdn_results' => array('results' => array()));
 
@@ -237,5 +410,6 @@ function _libraries_cdn_ui_build_variable($files) {
       }
     }
   }
-  variable_set('libraries_cdn_libraries', $libraries);
+  return $libraries;
+  //variable_set('libraries_cdn_libraries', $libraries);
 }
