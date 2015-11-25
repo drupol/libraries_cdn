@@ -141,28 +141,95 @@ function libraries_cdn_ui_browser($form, $form_state) {
  */
 function libraries_cdn_ui_browser_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
-  $search = $form_state['values']['search'];
-  $data = \Drupal\libraries_cdn\LibrariesCDN::search($search);
-  $form_state['storage']['results'] = $data;
-
   $form_state['values'] += array('libraries_cdn_results' => array('results' => array()));
 
-  $download = $form_state['values']['libraries_cdn_results']['results'];
-  $file_to_download = array();
-  foreach($download as $cdn => $library) {
-    foreach($library as $asset) {
-      foreach($asset['files'] as $version => $files) {
-        $file_to_download += $files['files'];
+  if (isset($form_state['values']['search'])) {
+    $search = $form_state['values']['search'];
+  } else {
+    return;
+  }
+
+  // Get all the search results from the available plugins.
+  $data = \Drupal\libraries_cdn\LibrariesCDN::search($search);
+  // Store the results in the form array so we can reuse this in the upper form.
+  $form_state['storage']['results'] = $data;
+
+  // Generate a simple array with the files to download.
+  $data = $form_state['values']['libraries_cdn_results']['results'];
+  $files = array();
+  foreach($data as $library) {
+    foreach($library as $version) {
+      foreach($version['files'] as $asset) {
+        $files += $asset['files'];
       }
     }
   }
-  $file_to_download = array_filter($file_to_download);
+  $files = array_filter($files);
 
-  foreach($file_to_download as $id) {
+  /*
+  $libraries = variable_get('libraries_cdn_libraries', array());
+  $data = array();
+  foreach($files as $id) {
     list($cdn,$library,$version,$index) = explode(':', $id);
-    \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library);
-    $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
-    $plugin->getLocalCopy(array($version), array($index));
+    $data[$cdn][$library][$version][] = array('index' => $index);
   }
 
+  foreach($data as $cdn) {
+    \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn);
+    $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
+    foreach($cdn as $library) {
+      $plugin->setLibrary($library);
+      $information = $plugin->getInformation();
+      foreach($library as $versions) {
+        $files = array();
+        foreach($versions as $version => $file) {
+          $ext = pathinfo($file, PATHINFO_EXTENSION);
+          $files[$ext][] = $file;
+        }
+        $libraries[$information['name']] = array(
+          'name' => $information['name'],
+          'library path' => $plugin->getLocalDirectoryName($version),
+          'description' => $information['description'],
+          'files' => $files
+        );
+      }
+    }
+  }
+
+  $library = $plugin->getInformation();
+  $files = $plugin->getFiles(array($version));
+  */
+
+  // Build the operations array for the batch.
+  $operations = array();
+  foreach($files as $id) {
+    $operations[] = array('_libraries_cdn_ui_download_files', array($id));
+  }
+
+  $batch = array(
+    'title' => t('Libraries CDN API: Downloading files'),
+    'operations' => $operations,
+    'init_message' => t('Initializing...'),
+    'progress_message' => t('Operation @current out of @total.'),
+    'error_message' => t('Found some error.'),
+    'file' => drupal_get_path('module', 'libraries_cdn_ui') . '/libraries_cdn_ui.admin.inc'
+  );
+
+  // Start the batch if there are files to download.
+  if (!empty($files)) {
+    batch_set($batch);
+  }
+}
+
+/**
+ * Function callback for the batch.
+ *
+ * @param $id
+ *   The id pattern is: [CDN_ID]:[LIBRARY]:[VERSION]:[FILE_INDEX]
+ */
+function _libraries_cdn_ui_download_files($id) {
+  list($cdn,$library,$version,$index) = explode(':', $id);
+  \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library);
+  $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
+  $plugin->getLocalCopy(array($version), array($index));
 }
