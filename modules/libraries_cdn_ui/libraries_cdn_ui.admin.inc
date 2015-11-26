@@ -369,7 +369,7 @@ function _libraries_cdn_ui_download_files($id) {
 function _libraries_cdn_ui_build_variable($files) {
   $files = array_filter($files);
   $data = array();
-  $libraries = variable_get('libraries_cdn_libraries', array());
+  $libraries_info = variable_get('libraries_cdn_libraries', array());
 
   foreach($files as $id) {
     list($cdn,$library,$version,$index) = explode(':', $id);
@@ -390,7 +390,7 @@ function _libraries_cdn_ui_build_variable($files) {
           $ext = pathinfo($library_files[$file['index']], PATHINFO_EXTENSION);
           $files[$ext][] = drupal_realpath($plugin->getLocalFileName($library_files[$file['index']], $version));
         }
-        $libraries[$information['name']] = array(
+        $libraries_info[$information['name']] = array(
           'name' => $information['name'],
           'library path' => drupal_realpath($plugin->getLocalDirectoryName($version)),
           'version' => $version,
@@ -399,7 +399,7 @@ function _libraries_cdn_ui_build_variable($files) {
       }
     }
   }
-  variable_set('libraries_cdn_libraries', $libraries);
+  variable_set('libraries_cdn_libraries', $libraries_info);
 
   return $libraries;
 }
