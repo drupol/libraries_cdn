@@ -4,6 +4,7 @@ core = 7.x
 php = 5.3.10
 package = "Other"
 
+configure = admin/reports/libraries/cdn
 dependencies[] = libraries_cdn
 
 ; As this is still in heavy development, this is hidden for now.

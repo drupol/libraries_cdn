@@ -4,6 +4,7 @@ core = 7.x
 php = 5.3.10
 package = "Other"
 
+dependencies[] = libraries
 dependencies[] = registry_autoload
 dependencies[] = service_container
 dependencies[] = service_container_symfony
