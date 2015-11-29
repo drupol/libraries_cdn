@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function libraries_cdn_example_plugin_menu() {
+  return array(
+    'libraries_cdn/dummy/files/%/%/%' => array(
+      'type' => MENU_CALLBACK,
+      'page callback' => 'libraries_cdn_dummy_files',
+      'access arguments' => array('access content'),
+    ),
+  );
+}
+
+/**
+ * hook_menu() page callback.
+ */
+function libraries_cdn_dummy_files($library, $version, $filename) {
+  $characters = ' 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  $randstring = '';
+  for ($i = 0; $i < 400; $i++) {
+    $randstring .= $characters[rand(0, strlen($characters))];
+  }
+  echo '/*' . $randstring . '*/';
+  exit;
+}

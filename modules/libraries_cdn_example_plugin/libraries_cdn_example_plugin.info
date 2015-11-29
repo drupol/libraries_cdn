@@ -1,0 +1,11 @@
+name = "Libraries CDN Example Plugin"
+description = "This is an example plugin who works without an Internet connection."
+core = 7.x
+php = 5.3.10
+package = "Other"
+
+dependencies[] = libraries_cdn
+
+registry_autoload[] = PSR-4
+
+hidden = true
