@@ -245,7 +245,7 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
    * {@inheritdoc}
    */
   public function getLocalCopy(array $versions = array(), array $indexes = array()) {
-    $assets = $this->getFiles();
+    $assets = $this->getFiles($versions);
 
     if (!empty($versions)) {
       $assets = array_intersect_key($assets, array_combine($versions, $versions));
