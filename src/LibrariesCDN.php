@@ -228,15 +228,18 @@ class LibrariesCDN extends \Drupal {
   /**
    * Generate an array for the variants of the Libraries API module.
    *
+   * @param array $library
+   *   The library array.
+   *
    * @return array
    *   The returned array can be applied to the 'variants' key in the library
    *   definition in hook_libraries_info().
    */
-  public static function getLibrariesVariants() {
+  public static function getLibrariesVariants(&$library) {
     $variants = array();
 
-    $variants += self::getCDNLibrariesVariants();
-    $variants += self::getLocalLibrariesVariants();
+    $variants += self::getCDNLibrariesVariants($library);
+    $variants += self::getLocalLibrariesVariants($library);
 
     return $variants;
   }
@@ -246,11 +249,14 @@ class LibrariesCDN extends \Drupal {
    *
    * These variants are from the CDN plugins only.
    *
+   * @param array $library
+   *   The library array.
+   *
    * @return array
    *   The returned array can be applied to the 'variants' key in the library
    *   definition in hook_libraries_info().
    */
-  public static function getCDNLibrariesVariants() {
+  public static function getCDNLibrariesVariants(array &$library = array()) {
     $variants = array();
 
     $module_path = drupal_get_path('module', 'libraries_cdn');
@@ -289,11 +295,14 @@ class LibrariesCDN extends \Drupal {
    *
    * These variants are from the local installation only.
    *
+   * @param array $library
+   *   The library array.
+   *
    * @return array
    *   The returned array can be applied to the 'variants' key in the library
    *   definition in hook_libraries_info().
    */
-  public static function getLocalLibrariesVariants() {
+  public static function getLocalLibrariesVariants(array &$library = array()) {
     $variants = array();
     $information = self::getInformation();
 
@@ -307,10 +316,10 @@ class LibrariesCDN extends \Drupal {
           continue;
         }
 
-        if (isset($options['download'])) {
+        if (isset($library['cdn']['download'])) {
           $variant = 'local:' . self::$plugin->getPluginId() . ':' . self::getLibrary() . ':' . $version;
 
-          if (isset($options['download']['versions'])) {
+          if (isset($library['cdn']['download']['versions'])) {
             $versions = array_map(function($version) {
               if ($version === 'latest') {
                 return self::$plugin->getLatestVersion();
@@ -318,7 +327,8 @@ class LibrariesCDN extends \Drupal {
               else {
                 return $version;
               }
-            }, (array) $options['download']['versions']);
+            }, (array) $library['cdn']['download']['versions']);
+
             if (in_array($version, $versions)) {
               self::$plugin->getLocalCopy(array($version));
               $file = self::$plugin->getLocalFileName($file, $version);
@@ -329,12 +339,11 @@ class LibrariesCDN extends \Drupal {
                 'data' => $file,
               ) + (array) self::$plugin->getConfiguration('options');
             }
-
           }
 
-          if (isset($options['download']['plugins'])) {
-            $options['download']['plugins'] = (array) $options['download']['plugins'];
-            foreach ($options['download']['plugins'] as $plugin => $versions) {
+          if (isset($library['cdn']['download']['plugins'])) {
+            $options['download']['plugins'] = (array) $library['cdn']['download']['plugins'];
+            foreach ($library['cdn']['download']['plugins'] as $plugin => $versions) {
               $versions = array_map(function($version) {
                 if ($version === 'latest') {
                   return self::$plugin->getLatestVersion();
