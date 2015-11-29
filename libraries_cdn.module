@@ -60,6 +60,7 @@ function libraries_cdn_permission() {
  *            see drupal_add_TYPE() (js or css) to see which are the keys.
  * - download: array, options to download a local copy of the library
  *   - versions: array, version to download on any CDN when available.
+ *               You can also use 'latest' to get the latest version.
  *   - plugins: array, keys are CDN plugin ids and the special keyword '*' can
  *              be use to specify all CDN plugins. Values are versions to
  *              download when available. The special keyword: 'latest' can be
@@ -91,7 +92,7 @@ function libraries_cdn_libraries_info_alter(&$info) {
         });
       }
 
-      if (!isset($options['aliases'])) {
+      if (!is_array($options['aliases'])) {
         $options['aliases'] = array();
       }
       $options['aliases'] += array($library_name);
@@ -100,10 +101,9 @@ function libraries_cdn_libraries_info_alter(&$info) {
       foreach ($options['aliases'] as $alias) {
         foreach ($options['plugins'] as $plugin) {
           \Drupal\libraries_cdn\LibrariesCDN::setPlugin($plugin, $alias, $options);
-          $variants += \Drupal\libraries_cdn\LibrariesCDN::getLibrariesVariants();
+          $variants += \Drupal\libraries_cdn\LibrariesCDN::getLibrariesVariants($library);
         }
       }
-
       $library['variants'] += $variants;
     }
     $library['cdn']['processed'] = TRUE;
@@ -144,7 +144,7 @@ function libraries_cdn_cron() {
       foreach ($options['aliases'] as $alias) {
         foreach ($options['plugins'] as $plugin) {
           \Drupal\libraries_cdn\LibrariesCDN::setPlugin($plugin, $alias, $options);
-          \Drupal\libraries_cdn\LibrariesCDN::getLocalLibrariesVariants();
+          \Drupal\libraries_cdn\LibrariesCDN::getLocalLibrariesVariants($library);
         }
       }
     }

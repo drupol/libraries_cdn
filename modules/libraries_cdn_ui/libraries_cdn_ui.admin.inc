@@ -100,15 +100,21 @@ function libraries_cdn_ui_library_autocomplete_callback($search) {
 function libraries_cdn_ui_browser_step2($form, &$form_state) {
   list($cdn, $library) = explode(':', $form_state['values']['library'], 2);
 
+  $id = $cdn . ':' . $library;
+  \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library);
+  $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
+  $files = $plugin->getFiles();
+
   $form['library'] = array(
     '#type' => 'value',
     '#default_value' => $form_state['values']['library'],
   );
 
-  $id = $cdn . ':' . $library;
-  \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library);
-  $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
-  $files = $plugin->getFiles();
+  $form['validation']['library'] = array(
+    '#type' => 'item',
+    '#title' => 'Library',
+    '#markup' => $library
+  );
 
   $form['version'] = array(
     '#type' => 'select',
@@ -186,8 +192,10 @@ function libraries_cdn_ui_browser_step2_version_callback($form, $form_state) {
 function libraries_cdn_ui_browser_step3($form, &$form_state) {
   list($cdn, $library) = explode(':', $form_state['values']['library'], 2);
   \Drupal\libraries_cdn\LibrariesCDN::setPlugin($cdn, $library);
-  $files = \Drupal\libraries_cdn\LibrariesCDN::getFiles($form_state['values']['version']);
+  $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
+  $files = $plugin->getFiles(array($form_state['values']['version']));
   $indexes_selected = array_filter($form_state['values']['files'][$form_state['values']['version']]['files']);
+
   $files_selected = array();
   foreach($indexes_selected as $id) {
     list($cdn, $library, $version, $index) = explode(':', $id, 4);
@@ -303,9 +311,9 @@ function libraries_cdn_ui_browser_submit($form, &$form_state) {
     // Start the batch if there are files to download.
     if (!empty($files)) {
       batch_set($batch);
+      drupal_flush_all_caches();
     }
 
-    drupal_flush_all_caches();
     return;
   }
 
@@ -381,7 +389,6 @@ function _libraries_cdn_ui_build_variable($files) {
     $plugin = \Drupal\libraries_cdn\LibrariesCDN::getPlugin();
     foreach($libraries as $library_name => $library) {
       $plugin->setLibrary($library_name);
-      $information = $plugin->getInformation();
       foreach($library as $version => $asset) {
         $files = array();
         $library_files = $plugin->getFiles(array($version));
@@ -390,8 +397,8 @@ function _libraries_cdn_ui_build_variable($files) {
           $ext = pathinfo($library_files[$file['index']], PATHINFO_EXTENSION);
           $files[$ext][] = drupal_realpath($plugin->getLocalFileName($library_files[$file['index']], $version));
         }
-        $libraries_info[$information['name']] = array(
-          'name' => $information['name'],
+        $libraries_info[$library_name] = array(
+          'name' => $library_name,
           'library path' => drupal_realpath($plugin->getLocalDirectoryName($version)),
           'version' => $version,
           'files' => $files
@@ -399,6 +406,7 @@ function _libraries_cdn_ui_build_variable($files) {
       }
     }
   }
+
   variable_set('libraries_cdn_libraries', $libraries_info);
 
   return $libraries;
