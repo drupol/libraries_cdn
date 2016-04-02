@@ -349,14 +349,12 @@ class CDNJSTest extends \PHPUnit_Framework_TestCase {
         'code' => 200,
         'data' => json_encode($results),
       ));
-
     $data = $this->plugin->search($this->plugin->getLibrary());
     $results = $this->plugin->formatData('search', $results);
 
     foreach ($data as $key => $result) {
-      $this->assertEquals($results[$key]['name'], $result);
+      $this->assertEquals($results[$key]['name'], $result['name']);
     }
-
 
     // Test 2
     $this->plugin->setLibrary('It\'s a trap');

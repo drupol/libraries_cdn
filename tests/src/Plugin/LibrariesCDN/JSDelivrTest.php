@@ -366,7 +366,7 @@ class JSDelivrTest extends \PHPUnit_Framework_TestCase {
     $results = $this->plugin->formatData('search', $results);
 
     foreach ($data as $key => $result) {
-      $this->assertEquals($results[$key]['name'], $result);
+      $this->assertEquals($results[$key]['name'], $result['name']);
     }
 
     // Test 2
