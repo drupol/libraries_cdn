@@ -117,10 +117,13 @@ abstract class CDNBase extends PluginBase implements CDNBaseInterface {
   public function query($url) {
     list($scheme, $url) = explode('://', $url, 2);
     $request = $this->request(sprintf('%s://' . $url, $this->getScheme($scheme), $this->getLibrary()));
+
     if ($request['code'] != 200) {
       return array();
     }
-    return json_decode($request['data'], TRUE);
+
+    $data = json_decode($request['data'], TRUE);
+    return is_array($data) ? $data : array();
   }
 
   /**

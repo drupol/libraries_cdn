@@ -103,6 +103,9 @@ interface CDNBaseInterface extends PluginInspectionInterface {
    *
    * @param string $url
    *   The URL.
+   *
+   * @return array
+   *   The json data from the request, decoded.
    */
   public function query($url);
 
