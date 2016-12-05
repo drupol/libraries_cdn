@@ -1,9 +1,14 @@
-[![Build Status](https://travis-ci.org/drupol/libraries_cdn.svg)](https://travis-ci.org/drupol/libraries_cdn)
-[![Coverage Status](https://coveralls.io/repos/drupol/libraries_cdn/badge.svg?branch=phpunit-tests&service=github)](https://coveralls.io/github/drupol/libraries_cdn?branch=phpunit-tests)
+[![Build Status](https://travis-ci.org/drupol/libraries_cdn.svg)]
+(https://travis-ci.org/drupol/libraries_cdn)
+[![Coverage Status](
+https://coveralls.io/repos/drupol/libraries_cdn/badge.svg?branch=phpunit-tests&
+service=github)]
+(https://coveralls.io/github/drupol/libraries_cdn?branch=phpunit-tests)
 
 # Libraries CDN API
 
-Libraries CDN API is an API module to retrieve data from CDN like CDNJS or jsDelivr.
+Libraries CDN API is an API module to retrieve data from CDN like CDNJS or
+jsDelivr.
 
 # API
 ```php
@@ -20,7 +25,9 @@ Libraries CDN API is an API module to retrieve data from CDN like CDNJS or jsDel
   \Drupal\libraries_cdn\LibrariesCDN::setPlugin('cdnjs', 'ol3');
 
   // Set the cdn, the library and the configuration.
-  \Drupal\libraries_cdn\LibrariesCDN::setPlugin('cdnjs', 'ol3', array('request' => array('timeout' => 5)));
+  \Drupal\libraries_cdn\LibrariesCDN::setPlugin(
+  'cdnjs', 'ol3', array('request' => array('timeout' => 5))
+  );
 
   // Set the library you want to get data from
   \Drupal\libraries_cdn\LibrariesCDN::setLibrary('openlayers');
@@ -48,8 +55,10 @@ Libraries CDN API is an API module to retrieve data from CDN like CDNJS or jsDel
 ```
 # Integration with Libraries API
 
-This module provides a kind of autodiscovery for Libraries API through the ```hook_libraries_info_alter()```.
-In order to have it working, add a new key to the library definition in ```hook_libraries_info()```.
+This module provides a kind of autodiscovery for Libraries API through the
+```hook_libraries_info_alter()```.
+In order to have it working, add a new key to the library definition in
+```hook_libraries_info()```.
 
 Here's an example:
 
@@ -87,16 +96,23 @@ function mymodule_libraries_info() {
 ```
 
 Details of this new sub-array:
-- plugins: array, the list of cdn plugins to search the library from. Will use all if not set.
+- plugins: array, the list of cdn plugins to search the library from.
+Will use all if not set.
 - aliases: array, if the library has different names.
-- limit: integer, set this to limit the number of results. If set to 3, it will return the 3 latest versions available.
-- options: array, this array will be applied to each file definition, see ```drupal_add_TYPE()``` (js or css) to see which are the keys.
+- limit: integer, set this to limit the number of results. If set to 3, it will
+return the 3 latest versions available.
+- options: array, this array will be applied to each file definition, see
+```drupal_add_TYPE()``` (js or css) to see which are the keys.
 - download: array, options to download a local copy of the library
   - versions: array, version to download on any CDN when available.
-  - plugins: array, keys are CDN plugin ids. Values are versions to download when available. The special keyword: 'latest' can be used to download the latest version available.
-- request: array, this array will be the configuration that will be passed to the request function. See drupal_http_request() for a list of key values.
+  - plugins: array, keys are CDN plugin ids. Values are versions to download
+  when available. The special keyword: 'latest' can be used to download the
+  latest version available.
+- request: array, this array will be the configuration that will be passed to
+the request function. See drupal_http_request() for a list of key values.
 
-To include a library variant selection in your module, here's an example of code that you can use:
+To include a library variant selection in your module, here's an example of code
+that you can use:
 
 ```
 $library = libraries_detect('openlayers3');
@@ -107,7 +123,8 @@ foreach ($library['variants'] as $version => $variant) {
     $optgroup = t('Other');
   }
   $optgroup = drupal_strtoupper($optgroup);
-  $options_variants[$optgroup][$version] = (isset($variant['name'])) ? $variant['name'] : $version;
+  $options_variants[$optgroup][$version] =
+  (isset($variant['name'])) ? $variant['name'] : $version;
 }
 $form['library'] = array(
   '#type' => 'select',
@@ -118,7 +135,8 @@ $form['library'] = array(
 
 # Integration using #attached
 
-Use the ```#attached``` key of a render array to attach any CDN libraries, just like any other regular libraries.
+Use the ```#attached``` key of a render array to attach any CDN libraries,
+just like any other regular libraries.
 
 ```
 $form['#attached'] = array(
@@ -129,7 +147,8 @@ $form['#attached'] = array(
 ```
 
 The parameters are:
-- String, required: The CDN to get the library from. (use ```*``` to query all CDN available and use the first who has it)
+- String, required: The CDN to get the library from.
+(use ```*``` to query all CDN available and use the first who has it)
 - String, required: The library name 
 - String, optional: The version. Will get the latest version if omitted.
 
